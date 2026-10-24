@@ -1,0 +1,106 @@
+# MANIFEST.md -- Project Inventory
+
+Everything needed to reproduce the reported results. Paths are relative to the repo root unless
+noted.
+
+## Code
+
+| Item | Source |
+|---|---|
+| FiDIP code | `https://github.com/ostadabbas/Infant-Pose-Estimation` @ `a76b4f4`, plus local Windows-compat patches (see AGENT.md 2026-10-08) |
+
+## Environment
+
+| Where | Name | Details |
+|---|---|---|
+| Laptop (Win11, RTX 4060 8GB) | conda `fidip` | Python 3.12.15, torch 2.3.1+cu121, torchvision 0.18.1, numpy 1.26.4; full pins in `requirements-win.txt` |
+| Explorer (`sheft.n`) | venv `~/venvs/fidip` | Python 3.12.15 (uv), torch 2.3.1+cu121, numpy 1.26.4; pins in `requirements-explorer.txt` (on cluster) |
+
+## Datasets
+
+| Dataset | Source | Local path | Cluster path | Status |
+|---|---|---|---|---|
+| SyRIP (`SyRIP.zip`, 328 MB) | https://coe.northeastern.edu/Research/AClab/SyRIP/ (password from authors) | `data/syrip/` | `~/Infant-Pose-Estimation/data/syrip/` | extracted 2026-10-08 |
+| SyRIP for training (`syrip_for_train.zip`, 637 MB) | same | `data/syrip/` (merged with above) | `~/Infant-Pose-Estimation/data/syrip/` | extracted 2026-10-08 |
+| `train_pre_infant` (COCO val2017 + SURREAL, real/synthetic labels) | included in `syrip_for_train.zip` | `data/syrip/images/train_pre_infant/` | `~/Infant-Pose-Estimation/data/syrip/images/train_pre_infant/` | 4057 imgs; 3904 used by loader |
+
+**Data actually used by the configs** (`DATASET.ROOT: data/syrip/`):
+- `annotations/person_keypoints_train_infant.json` -- 1200 imgs (200 real + 1000 synthetic), from syrip_for_train
+- `annotations/person_keypoints_train_pre_infant.json` -- 4057 imgs (loader keeps 3904)
+- `annotations/person_keypoints_validate_infant.json` -- 100 imgs = **Test100** (identical keypoints to `annotations/validate100/`, plus a `posture` field)
+- Also present from SyRIP.zip: `annotations/{200R,1000S,200R_1000S,validate100,validate500}/`, 500 validate images, 300 extra unannotated train_infant images.
+
+## Pretrained checkpoints
+
+| File | Source | Path | Status |
+|---|---|---|---|
+| `w48_384×288.pth` (DarkPose HRNet-W48 COCO; note Unicode `×` in name, matches config) | [TGA_models](https://drive.google.com/drive/folders/14kAA1zXuKODYgrRiQmKnVcipbY7RedVV) | `models/coco/w48_384×288.pth` | downloaded 2026-10-08 (255 MB) |
+| `hrnet_fidip.pth` | [FiDIP_models](https://drive.google.com/drive/folders/108P-1SnTqaj3xNtjYZ1o7T8z6UvUYuiC) | `models/hrnet_fidip.pth` | downloaded 2026-10-08 (255 MB) |
+| `mobile_fidip.pth` | same | `models/mobile_fidip.pth` | downloaded 2026-10-08 (17 MB) |
+
+Checkpoint md5 (identical on laptop and Explorer `~/Infant-Pose-Estimation/models/`):
+`hrnet_fidip.pth` c1b4994799f08e6cbc44942f44472790, `mobile_fidip.pth` 049dbf22c3131bb72872bc744a1eefe5,
+`coco/w48_384×288.pth` 403962abcb38f9a85891c1a7a029dcdc.
+
+## Job scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/eval.sbatch <cfg> <model>` | Test100 eval on Explorer |
+| `scripts/train.sbatch <cfg> [overrides]` | FiDIP training on Explorer (HRNet init from COCO DarkPose) |
+
+## Evaluation sets
+
+| Set | GT file | Notes |
+|---|---|---|
+| Test100 | `data/syrip/annotations/person_keypoints_validate_infant.json` (== `validate100/`) | official benchmark; used for best-epoch selection |
+| Test500 (corrected) | `data/syrip500/annotations/person_keypoints_validate_infant.json` | shipped `validate500` json has a constant placeholder `area` -> inflated AP; corrected = Test100 anns verbatim + `area = bbox w*h` for the other 400 |
+| Test400 | Test500 minus Test100 image ids (computed in `scripts/subset_ap.py`) | **unbiased held-out set** |
+
+All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eval500_summary.md`.
+
+## Configs
+
+| Config | Purpose |
+|---|---|
+| `experiments/coco/hrnet/w48_384x288_adam_lr1e-3_infant.yaml` | FiDIP HRNet-W48 train/test |
+| `experiments/coco/mobilenet/mobile_224x224_adam_lr1e-3_infant.yaml` | FiDIP MobileNetV2 |
+
+## Runs and results
+
+| Run | Config / overrides | Checkpoint | AP | AP50 | AP75 | AR | Notes |
+|---|---|---|---|---|---|---|---|
+| Paper: DarkPose + FiDIP | -- | -- | 93.6 | 98.5 | 98.5 | 94.6 | published baseline (SyRIP Test100) |
+| 2026-10-08 baseline repro (laptop) | `w48_384x288_adam_lr1e-3_infant.yaml`, `TEST.MODEL_FILE models/hrnet_fidip.pth TEST.USE_GT_BBOX True` | `models/hrnet_fidip.pth` (released) | 93.6 | 98.5 | 98.5 | 94.6 | exact match to paper; log `log/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant_2026-10-08-17-55/` |
+| Paper: Pose-MobileNet + FiDIP | -- | -- | 79.2 | 99.0 | 89.4 | 84.1 | published baseline (SyRIP Test100) |
+| 2026-10-08 MobileNet repro (laptop) | `mobile_224x224_adam_lr1e-3_infant.yaml`, `TEST.MODEL_FILE models/mobile_fidip.pth TEST.USE_GT_BBOX True` | `models/mobile_fidip.pth` (released) | 79.2 | 99.0 | 89.4 | 84.1 | exact match; log `log/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant_2026-10-08-17-58/` |
+| 2026-10-08 HRNet repro (Explorer job 10929307, V100-32GB) | `scripts/eval.sbatch` + infant cfg | `models/hrnet_fidip.pth` | 93.6 | 98.5 | 98.5 | 94.6 | identical to laptop; log `/scratch/sheft.n/fidip/logs/fidip-eval_10929307.out` |
+| 2026-10-23 train repro A: FiDIP (job 11329332) | infant cfg + `TRAIN.CHECKPOINT models/coco/w48_384×288.pth TRAIN.LAMBDA 0.0005 TRAIN.PRE_EPOCH 10 OUTPUT_DIR output/repro_fidip` | Explorer `~/Infant-Pose-Estimation/output/repro_fidip/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/model_best.pth` (epoch 12) | 92.0 | 98.4 | 98.4 | 93.6 | best-of-20 on Test100; final epoch 90.4; paper 93.6 |
+| 2026-10-23 train repro B: shipped cfg = finetune (job 11329348) | infant cfg + `TRAIN.CHECKPOINT models/coco/w48_384×288.pth OUTPUT_DIR output/repro_shipped` | Explorer `~/Infant-Pose-Estimation/output/repro_shipped/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/model_best.pth` (epoch 20) | 93.0 | -- | -- | -- | best-of-20 on Test100; paper Finetune 92.7 |
+| 2026-10-23 sweep rep2 (job 11330470) | = run A | `output/rep2/.../model_best.pth` (ep 9) | 91.3 | -- | -- | -- | repeat of A |
+| 2026-10-23 sweep rep3 (job 11330481) | = run A | `output/rep3/.../model_best.pth` (ep 8) | 91.9 | -- | -- | -- | repeat of A |
+| 2026-10-23 sweep lrstep (job 11330486) | A + `TRAIN.LR_STEP [10,15]` | `output/lrstep/.../model_best.pth` (ep 11) | 91.2 | -- | -- | -- | final 91.2 |
+| 2026-10-23 sweep lam5e-3 (job 11330496) | A with `TRAIN.LAMBDA 0.005` | `output/lam5e-3/.../model_best.pth` (ep 1) | 85.5 | -- | -- | -- | diverged, final 73.9 |
+| 2026-10-23 sweep lam5e-2 (job 11330524) | A with `TRAIN.LAMBDA 0.05` | `output/lam5e-2/.../model_best.pth` (ep 1) | 86.4 | -- | -- | -- | collapsed, final 0.8 |
+| 2026-10-23 round2 B-rep2 (job 11331011) | shipped cfg (repeat of B) | `output/B-rep2/.../model_best.pth` (ep 19) | 92.6 | -- | -- | -- | final 91.5 |
+| 2026-10-23 round2 B-rep3 (job 11331062) | shipped cfg (repeat of B) | `output/B-rep3/.../model_best.pth` (ep 10) | 92.7 | -- | -- | -- | final 92.5 |
+| 2026-10-23 round2 adv-only (job 11331069) | `TRAIN.PRE_EPOCH 0 TRAIN.LAMBDA 0.0005` | `output/adv-only/.../model_best.pth` (ep 18) | 93.0 | -- | -- | -- | final 92.7; ties best |
+| 2026-10-23 round2 pre-only (job 11331060) | `TRAIN.PRE_EPOCH 10 TRAIN.LAMBDA 0.0` | `output/pre-only/.../model_best.pth` (ep 20) | 92.1 | -- | -- | -- | final 92.1 |
+| 2026-10-23 round2 bnfreeze (job 11331067) | A + `TRAIN.PRE_BN_FREEZE True` | `output/bnfreeze/.../model_best.pth` (ep 19) | 92.6 | -- | -- | -- | final 91.6 |
+| 2026-10-23 round2 conf5e-4 (job 11331081) | A + `TRAIN.ADV_LOSS confusion` (LAMBDA 5e-4) | `output/conf5e-4/.../model_best.pth` (ep 3) | 91.2 | -- | -- | -- | final 86.4 |
+| 2026-10-23 round2 conf5e-3 (job 11331086) | ... confusion, LAMBDA 5e-3 | `output/conf5e-3/.../model_best.pth` (ep 1) | 86.3 | -- | -- | -- | collapsed, final 26.9 |
+| 2026-10-23 round2 conf5e-2 (job 11331331) | ... confusion, LAMBDA 5e-2 | `output/conf5e-2/.../model_best.pth` (ep 1) | 85.9 | -- | -- | -- | collapsed, final 0.0 |
+| 2026-10-23 round3 adv-only-rep2 (job 11332174) | `TRAIN.PRE_EPOCH 0 TRAIN.LAMBDA 0.0005` | `output/adv-only-rep2/.../model_best.pth` (ep 14) | 92.2 | -- | -- | -- | Test400 in results/eval500.csv |
+| 2026-10-23 round3 adv-only-rep3 (job 11332165) | same | `output/adv-only-rep3/.../model_best.pth` (ep 6) | 92.2 | -- | -- | -- | |
+| 2026-10-23 round3 bnfreeze-rep2 (job 11332183) | A + `TRAIN.PRE_BN_FREEZE True` | `output/bnfreeze-rep2/.../model_best.pth` (ep 12) | 91.6 | -- | -- | -- | |
+| 2026-10-23 round3 bnfreeze-rep3 (job 11332187) | same | `output/bnfreeze-rep3/.../model_best.pth` (ep 13) | 91.6 | -- | -- | -- | |
+| 2026-10-23 round4 ft40-s1 (job 11333089) | shipped cfg + `TRAIN.END_EPOCH 40 TRAIN.LR_STEP [30]` | `output/ft40-s1/.../final_state.pth` | 92.4 | -- | -- | -- | **best recipe**: Test400 final 90.3 (best ckpt ep 30: Test100 93.1) |
+| 2026-10-23 round4 ft40-s2 (job 11333092) | same | `output/ft40-s2/.../final_state.pth` | 91.7 | -- | -- | -- | Test400 final 90.0 |
+| 2026-10-23 round4 adv40-s2 (job 11333110) | + `TRAIN.PRE_EPOCH 0 TRAIN.LAMBDA 0.0005` | `output/adv40-s2/.../final_state.pth` | 91.6 | -- | -- | -- | Test400 final 89.7 |
+| 2026-10-23 round4 adv40-s3 (job 11334290) | same, excluded slow nodes | `output/adv40-s3/.../final_state.pth` | 91.8 | -- | -- | -- | Test400 final 89.9 |
+| 2026-10-23 round4 adv40-s1 (job 11333095) | same | `output/adv40-s1/.../model_best.pth` | 92.2 | -- | -- | -- | TIMEOUT at epoch 26 (V100-PCIe node), excluded |
+
+**Final reported numbers (2026-10-23):**
+- Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).
+- Best model we trained: `ft40-s1` (job 11333089), `output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth` on Explorer: Test400 90.3, Test100 92.4 (final epoch). Recipe mean over 2 seeds: Test400 90.2 ± 0.2.
+- All checkpoint scores: `results/eval500.csv`; summary table: `results/eval500_summary.md`.

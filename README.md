@@ -1,5 +1,16 @@
 # Fine-tuned Domain-adapted Infant Pose (FiDIP)
 
+> **EECE 7373 reproduction study (fork of [ostadabbas/Infant-Pose-Estimation](https://github.com/ostadabbas/Infant-Pose-Estimation)).**
+> Start with [`AGENT.md`](AGENT.md) (research log), [`MANIFEST.md`](MANIFEST.md) (data, checkpoints,
+> final numbers) and [`SKILL.md`](SKILL.md) (how runs are launched on the Explorer cluster).
+> Result tables: [`results/eval500_summary.md`](results/eval500_summary.md).
+> Headline: the released FiDIP model reproduces exactly (Test100 AP 93.6) and the fine-tune baseline
+> reproduces (92.7), but FiDIP's gain over fine-tuning did not reproduce when retraining with this code;
+> best retrained recipe is 40-epoch fine-tuning (held-out Test400 AP 90.2 vs 90.7 for the released model).
+> Changes vs upstream: Windows compatibility (`lib/nms/nms.py`, `lib/dataset/syrip.py`), per-run loss
+> curves, opt-in `TRAIN.ADV_LOSS` / `TRAIN.PRE_BN_FREEZE` options, SLURM scripts in `scripts/`.
+> The original README follows unchanged.
+
 Codes and experiments for the following paper: 
 
 Xiaofei Huang, Nihang Fu, Shuangjun Liu, Sarah Ostadabbas, “Invariant representation learning for infant pose estimation withsmall data,” in IEEE International Conference on Automatic Face and Gesture Recognition (FG), Dec. 2021
