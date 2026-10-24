@@ -63,3 +63,5 @@ wandb/
 temp_uploads/
 __pycache__/
 .ipynb_checkpoints/
+# cluster-side Test500 evaluation outputs (predictions, features, per-job csv) -- summaries live in results/
+eval500/
