@@ -65,3 +65,7 @@ __pycache__/
 .ipynb_checkpoints/
 # cluster-side Test500 evaluation outputs (predictions, features, per-job csv) -- summaries live in results/
 eval500/
+# on Explorer, output/ and eval500/ are symlinks into /projects/ML_Small_Data (patterns with a
+# trailing slash do not match symlinks)
+/output
+/eval500

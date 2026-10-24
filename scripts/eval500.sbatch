@@ -31,4 +31,6 @@ while read -r TAG CKPT; do
   RES=$OUT/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/results/keypoints_validate_infant_results_0.json
   # One csv per job: concurrent jobs appending to a single shared csv lost rows (2026-10-23).
   $PY scripts/subset_ap.py $GT500 $GT100 $RES $TAG | tee -a eval500/results_$SLURM_JOB_ID.csv
+  # test_adaptive_model.py also dumps a ~600 MB feature.npy per checkpoint that nothing uses.
+  rm -f $OUT/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/feature.npy
 done < "$LIST"
