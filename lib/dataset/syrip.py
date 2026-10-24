@@ -320,9 +320,9 @@ class SYRIPDataset(JointsDataset):
         _kpts = []
         for idx, kpt in enumerate(preds):
             if self.image_set == 'validate_infant':
-                _img = int(img_path[idx].split('/')[-1][4:-4])
+                _img = int(os.path.basename(img_path[idx])[4:-4])
             elif self.image_set == 'train_pre_infant' or self.image_set == 'train_infant':
-                _img = int(img_path[idx].split('/')[-1][5:-4])
+                _img = int(os.path.basename(img_path[idx])[5:-4])
             else:
                 _img = int(img_path[idx][-16:-4])
             #print(_img)

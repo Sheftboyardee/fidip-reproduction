@@ -48,3 +48,18 @@ Thumbs.db
 *.mov
 *.wmv
 
+
+# --- FiDIP project ---
+# secrets (never commit)
+.env
+# data / weights / run outputs (tracked in MANIFEST.md instead)
+data/
+models/
+output/
+log/
+*.pth
+*.pt
+wandb/
+temp_uploads/
+__pycache__/
+.ipynb_checkpoints/

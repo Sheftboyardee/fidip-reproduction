@@ -10,8 +10,17 @@ from __future__ import print_function
 
 import numpy as np
 
-from .cpu_nms import cpu_nms
-from .gpu_nms import gpu_nms
+# The compiled extensions are only needed by cpu_nms_wrapper/gpu_nms_wrapper.
+# oks_nms/soft_oks_nms (used by the datasets) are pure numpy, so allow running
+# without building them (e.g. on Windows without MSVC/nvcc).
+try:
+    from .cpu_nms import cpu_nms
+except ImportError:
+    cpu_nms = None
+try:
+    from .gpu_nms import gpu_nms
+except ImportError:
+    gpu_nms = None
 
 
 def py_nms_wrapper(thresh):
