@@ -464,3 +464,14 @@ Released model has a single checkpoint (Test400 90.7). adv40-s1 (job 11333095) t
   Test500 annotations), `models/`, `output/`, `log/`, `.env`. Scanned for tokens/secrets: none.
 - `gh` is not installed and there is no `GITHUB_TOKEN`, so the user creates the empty repo on
   github.com; pushing uses their existing git credential manager login.
+- Pushed to **https://github.com/Sheftboyardee/fidip-reproduction** (private; confirmed 404 from
+  the unauthenticated API), branch `main`.
+- Commit hygiene slip (caught before pushing): `git add --renormalize .` with a broad
+  `*.py eol=lf` rule restaged 36 untouched upstream `syn_generation/` files as line-ending
+  rewrites. Reset that local commit and scoped `.gitattributes` to `scripts/**` only.
+- Explorer now syncs by git: read-only deploy key `~/.ssh/fidip_deploy` (user added it in the repo
+  settings, write access off), ssh alias `github-fidip`. Before switching the cluster checkout I
+  compared all 129 tracked files to `origin/main` ignoring CR: the only differences were files
+  edited on the laptop after the last tar sync, so `git checkout -f -B main origin/main` lost
+  nothing. Data/models/outputs untouched. Added `eval500/` to `.gitignore`.
+- Noticed `output/` on Explorer is 29 GB (75 GB quota) -- noted in SKILL.md; nothing deleted.

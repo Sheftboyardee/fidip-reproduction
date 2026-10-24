@@ -62,9 +62,17 @@ Host explorer
 | Scratch | `/scratch/sheft.n/fidip/logs/` | SLURM stdout `<jobname>_<jobid>.out` (scratch is purged -- nothing precious here) |
 | Course dir | `/projects/ML_Small_Data` | shared with the whole class -- do **not** put the password-protected SyRIP data here |
 
-Code sync (no git remote of our own yet): from the laptop repo root
-`tar --exclude=./output --exclude=./log --exclude=./data --exclude=./models -cf - . | ssh explorer 'tar -xf - -C ~/Infant-Pose-Estimation'`.
-Switch to `git push` / `git pull --ff-only` once the project has its own GitHub repo.
+**Code sync via git** (since 2026-10-23): repo `https://github.com/Sheftboyardee/fidip-reproduction`
+(private). `origin` = that repo, `upstream` = `ostadabbas/Infant-Pose-Estimation`, branch `main`.
+- Laptop: commit, then `git push`. Explorer: `ssh explorer 'cd ~/Infant-Pose-Estimation && git pull --ff-only'`.
+- Explorer pulls over SSH with a **read-only deploy key** `~/.ssh/fidip_deploy` (alias `github-fidip`
+  in Explorer's `~/.ssh/config`); it cannot push. Never edit tracked files on the cluster.
+- Gitignored (stay on disk only): `data/`, `models/`, `output/`, `log/`, `eval500/`, `.env`. Data and
+  weights are synced by hand once (tar over ssh, ~0.5 MB/s -- avoid re-sending).
+- `.gitattributes` forces LF under `scripts/` so sbatch/shell files survive a Windows checkout.
+- **Disk:** `output/` on Explorer was 29 GB on 2026-10-23 (home quota 75 GB): ~1 GB of checkpoints
+  per HRNet run (`checkpoint.pth`, `model_best.pth`, `final_state.pth`) plus debug images. Check
+  `du -sh ~/Infant-Pose-Estimation/output` before big sweeps; ask the user before deleting anything.
 
 ## Job scripts (`scripts/`)
 
