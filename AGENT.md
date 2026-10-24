@@ -489,3 +489,13 @@ Released model has a single checkpoint (Test400 90.7). adv40-s1 (job 11333095) t
 - Home usage: `output/` 29 GB, `eval500/` 25 GB (mostly unused `feature.npy` dumps), `.cache` 5 GB.
 - Proposed (pending user OK): move `output/` and `eval500/` to `/projects/ML_Small_Data` and
   symlink them back; drop the unused `feature.npy` files.
+- **Done (user chose "move + drop features"):** deleted the 40 unused `eval500/*/feature.npy`
+  dumps (26.5 GB; the 40 prediction JSONs kept). Copied `output/` (840 files, 30.6 GB) and
+  `eval500/` (133 files) to `/projects/ML_Small_Data/sheft.n/fidip/` in a short-partition job
+  (11339328) that verified file counts + byte totals; also md5-checked the final-result
+  checkpoint. My first attempt bundled `rm -rf "$SRC/$d"` into the job script and was blocked by
+  a safety check (variable rm target); redid it as copy-and-verify only, then removed the two
+  home copies by literal path after reading the verification, and symlinked them back.
+  Home 61 GB -> 7.4 GB. `flock` verified on the project filesystem through the symlink.
+  `eval500.sbatch` now deletes `feature.npy` after scoring; `.gitignore` also matches the
+  symlinks (`/output`, `/eval500`).

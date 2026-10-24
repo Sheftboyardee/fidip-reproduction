@@ -61,8 +61,8 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
 
 | Storage | Path | Quota (soft / hard) | Use for |
 |---|---|---|---|
-| Home | `~/Infant-Pose-Estimation` | **0.07 / 0.07 TiB (~77 GB)** | code, venv; was 61 GB used (output 29 GB + eval500 25 GB) |
-| Project | `/projects/ML_Small_Data` | **1.0 / 1.5 TiB** | storage granted to the user (RITM8406068). Members: `sheft.n`, `ostadabbas` only (+ RC admins), not class-wide. Right place for checkpoints/eval outputs |
+| Home | `~/Infant-Pose-Estimation` | **0.07 / 0.07 TiB (~77 GB)** | code, `data/`, `models/`, `log/`, venv (~7 GB used after the 2026-10-23 move) |
+| Project | `/projects/ML_Small_Data/sheft.n/fidip/{output,eval500}` | **1.0 / 1.5 TiB** | storage granted to the user (RITM8406068); members `sheft.n`, `ostadabbas` only (+ RC admins), not class-wide. **Checkpoints and eval outputs live here**; `~/Infant-Pose-Estimation/output` and `.../eval500` are symlinks to it, so all scripts/paths are unchanged |
 | Scratch | `/scratch/sheft.n/fidip/logs/` | 49 / 50 TiB | SLURM stdout `<jobname>_<jobid>.out` (scratch is purged -- nothing precious here) |
 
 **Code sync via git** (since 2026-10-23): repo `https://github.com/Sheftboyardee/fidip-reproduction`
@@ -74,10 +74,10 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
   weights are synced by hand once (tar over ssh, ~0.5 MB/s -- avoid re-sending).
 - `.gitattributes` forces LF under `scripts/` so sbatch/shell files survive a Windows checkout.
 - **Disk:** ~1.2 GB per HRNet run in `output/` (`checkpoint.pth`, `model_best.pth`,
-  `final_state.pth` + debug images); each `eval500/<tag>/` holds a ~600 MB `feature.npy` dump
-  written by `tools/test_adaptive_model.py` that nothing uses. Home is only ~77 GB -- check
-  `du -sh ~/Infant-Pose-Estimation/{output,eval500}` before big sweeps; ask the user before
-  deleting or moving anything.
+  `final_state.pth` + debug images) -- now on the 1 TiB project space via symlink.
+  `eval500.sbatch` deletes the unused ~600 MB `feature.npy` per checkpoint after scoring.
+  Never write bulky outputs to a real directory in home (~77 GB). Ask the user before deleting
+  or moving anything.
 
 ## Job scripts (`scripts/`)
 

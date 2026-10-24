@@ -42,6 +42,16 @@ Checkpoint md5 (identical on laptop and Explorer `~/Infant-Pose-Estimation/model
 `hrnet_fidip.pth` c1b4994799f08e6cbc44942f44472790, `mobile_fidip.pth` 049dbf22c3131bb72872bc744a1eefe5,
 `coco/w48_384×288.pth` 403962abcb38f9a85891c1a7a029dcdc.
 
+## Where run outputs physically live (Explorer)
+
+Since 2026-10-23, `~/Infant-Pose-Estimation/output` -> `/projects/ML_Small_Data/sheft.n/fidip/output`
+and `~/Infant-Pose-Estimation/eval500` -> `/projects/ML_Small_Data/sheft.n/fidip/eval500` (symlinks).
+All `output/...` checkpoint paths in this file resolve through them unchanged. Copy verified
+(840 + 133 files, byte totals equal; md5 of `ft40-s1/.../final_state.pth`
+b2b6dfb1f5a8bb5d646f06cfa0a2bc36 identical) before the home copies were removed.
+The unused `eval500/*/feature.npy` dumps (40 files, 26.5 GB) were deleted at the user's request;
+the prediction JSONs used for every reported number were kept.
+
 ## Job scripts
 
 | Script | Purpose |
