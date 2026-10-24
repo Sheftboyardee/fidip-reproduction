@@ -89,6 +89,12 @@ _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 140
 
 _C.TRAIN.LAMBDA = 0.0005
+# Adversarial term for the pose net: 'neg_bce' (original: loss_p - LAMBDA * BCE(d, domain), unbounded)
+# or 'confusion' (loss_p + LAMBDA * BCE(d, 0.5), bounded; pushes the classifier toward chance).
+_C.TRAIN.ADV_LOSS = 'neg_bce'
+# Keep the pose net in eval mode during domain-classifier pre-training so its BatchNorm running
+# stats are not updated on train_pre_infant (adult) images. Original code: False.
+_C.TRAIN.PRE_BN_FREEZE = False
 
 _C.TRAIN.RESUME = False
 _C.TRAIN.CHECKPOINT = ''

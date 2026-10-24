@@ -137,7 +137,10 @@ def train_adaptive(config, train_loader, model_p, model_d, criterion_p, criterio
         
         target = target.cuda(non_blocking=True)
         target_weight = target_weight.cuda(non_blocking=True)
-        loss_p = criterion_p(outputs, target, target_weight) - config.TRAIN.LAMBDA * criterion_d(domain_logits_p, domain_label)
+        if config.TRAIN.ADV_LOSS == 'confusion':
+            loss_p = criterion_p(outputs, target, target_weight) + config.TRAIN.LAMBDA * criterion_d(domain_logits_p, torch.full_like(domain_label, 0.5))
+        else:
+            loss_p = criterion_p(outputs, target, target_weight) - config.TRAIN.LAMBDA * criterion_d(domain_logits_p, domain_label)
         loss_d_2 = criterion_d(domain_logits_p, domain_label)
   
 

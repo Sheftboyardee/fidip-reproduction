@@ -242,7 +242,10 @@ def main():
     print('Start to train Domain Classifier-------')    
     for epoch_d in range(epoch_D):  # epoch
         model_d.train()
-        model_p.train()
+        if cfg.TRAIN.PRE_BN_FREEZE:
+            model_p.eval()
+        else:
+            model_p.train()
     
         for i, (input, target, target_weight, meta) in enumerate(train_pre_loader):  # iteration     
             # compute output for pose_net
@@ -325,10 +328,10 @@ def main():
     torch.save(model_p.module.state_dict(), final_model_state_file)
     writer_dict['writer'].close()
 
-    np.save('./losses_D.npy', np.array(losses_D_list))  # Adversarial-D
-    np.save('./losses_P.npy', np.array(losses_P_list))   # P
-    np.save('./acces_P.npy', np.array(acces_P_list))   # P   
-    np.save('./acces_D.npy', np.array(acces_D_list))   # D
+    np.save(os.path.join(final_output_dir, 'losses_D.npy'), np.array(losses_D_list))  # Adversarial-D
+    np.save(os.path.join(final_output_dir, 'losses_P.npy'), np.array(losses_P_list))   # P
+    np.save(os.path.join(final_output_dir, 'acces_P.npy'), np.array(acces_P_list))   # P   
+    np.save(os.path.join(final_output_dir, 'acces_D.npy'), np.array(acces_D_list))   # D
     
    
 class AverageMeter(object):
