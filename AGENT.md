@@ -475,3 +475,17 @@ Released model has a single checkpoint (Test400 90.7). adv40-s1 (job 11333095) t
   edited on the laptop after the last tar sync, so `git checkout -f -B main origin/main` lost
   nothing. Data/models/outputs untouched. Added `eval500/` to `.gitignore`.
 - Noticed `output/` on Explorer is 29 GB (75 GB quota) -- noted in SKILL.md; nothing deleted.
+
+## 2026-10-23 -- Storage check
+
+**Asked:** user believed they had more than 75 GB (RC ticket RITM8406068 granted
+`/projects/ML_Small_Data`, 1 TB). Verified with RC's `check-quota` from a short-partition job
+(11338149):
+- Home: 0.06 TiB used of 0.07 TiB hard limit (~77 GB) -- the "75 GB" figure was right for home,
+  but I had only taken it from the course template, not measured it.
+- `/projects/ML_Small_Data`: 1.0 TiB soft / 1.5 TiB hard, empty. Group members are only
+  `sheft.n` and `ostadabbas`. **Correction:** I earlier called it "shared with the whole class"
+  from its name alone -- wrong; it is the user's own project space.
+- Home usage: `output/` 29 GB, `eval500/` 25 GB (mostly unused `feature.npy` dumps), `.cache` 5 GB.
+- Proposed (pending user OK): move `output/` and `eval500/` to `/projects/ML_Small_Data` and
+  symlink them back; drop the unused `feature.npy` files.

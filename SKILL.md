@@ -56,11 +56,14 @@ Host explorer
 
 ## Filesystem layout (cluster)
 
-| Storage | Path | Use for |
-|---|---|---|
-| Home | `~/Infant-Pose-Estimation` | code, `data/syrip`, `models/`, `output/` checkpoints, `log/` (private; ~1.5 GB + ~1 GB/HRNet run) |
-| Scratch | `/scratch/sheft.n/fidip/logs/` | SLURM stdout `<jobname>_<jobid>.out` (scratch is purged -- nothing precious here) |
-| Course dir | `/projects/ML_Small_Data` | shared with the whole class -- do **not** put the password-protected SyRIP data here |
+Quotas verified 2026-10-23 with RC's `check-quota <path>` (only works from a `short`-partition
+node, e.g. inside an sbatch job; `quota` itself fails on VAST):
+
+| Storage | Path | Quota (soft / hard) | Use for |
+|---|---|---|---|
+| Home | `~/Infant-Pose-Estimation` | **0.07 / 0.07 TiB (~77 GB)** | code, venv; was 61 GB used (output 29 GB + eval500 25 GB) |
+| Project | `/projects/ML_Small_Data` | **1.0 / 1.5 TiB** | storage granted to the user (RITM8406068). Members: `sheft.n`, `ostadabbas` only (+ RC admins), not class-wide. Right place for checkpoints/eval outputs |
+| Scratch | `/scratch/sheft.n/fidip/logs/` | 49 / 50 TiB | SLURM stdout `<jobname>_<jobid>.out` (scratch is purged -- nothing precious here) |
 
 **Code sync via git** (since 2026-10-23): repo `https://github.com/Sheftboyardee/fidip-reproduction`
 (private). `origin` = that repo, `upstream` = `ostadabbas/Infant-Pose-Estimation`, branch `main`.
@@ -70,9 +73,11 @@ Host explorer
 - Gitignored (stay on disk only): `data/`, `models/`, `output/`, `log/`, `eval500/`, `.env`. Data and
   weights are synced by hand once (tar over ssh, ~0.5 MB/s -- avoid re-sending).
 - `.gitattributes` forces LF under `scripts/` so sbatch/shell files survive a Windows checkout.
-- **Disk:** `output/` on Explorer was 29 GB on 2026-10-23 (home quota 75 GB): ~1 GB of checkpoints
-  per HRNet run (`checkpoint.pth`, `model_best.pth`, `final_state.pth`) plus debug images. Check
-  `du -sh ~/Infant-Pose-Estimation/output` before big sweeps; ask the user before deleting anything.
+- **Disk:** ~1.2 GB per HRNet run in `output/` (`checkpoint.pth`, `model_best.pth`,
+  `final_state.pth` + debug images); each `eval500/<tag>/` holds a ~600 MB `feature.npy` dump
+  written by `tools/test_adaptive_model.py` that nothing uses. Home is only ~77 GB -- check
+  `du -sh ~/Infant-Pose-Estimation/{output,eval500}` before big sweeps; ask the user before
+  deleting or moving anything.
 
 ## Job scripts (`scripts/`)
 
