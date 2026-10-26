@@ -127,8 +127,10 @@ jobs until resume is fixed.
 - Submit with `source ~/fidip_submit_lib.sh; submit <tag> [overrides]` (from the repo dir): it
   skips tags already in `sacct` and refuses to submit if `sacct` fails/returns nothing. Never
   re-run a whole sweep script to add one job. `TIME=01:30:00 submit ...` overrides the 1 h limit.
-- **Avoid c2204-c2207** (V100-PCIe, ~3x slower than the SXM2 nodes for this model); the submit
-  helper excludes them by default. To exclude on an already-pending job: `scontrol update JobId=<id> ExcNodeList="c[2204-2207]"`.
+- **Avoid c2204-c2207** (V100-PCIe, ~3x slower than the SXM2 nodes for this model) **and d1025**
+  (Tesla T4, ~2.3 min/epoch for HRNet-W48 -> a 40-epoch run needs ~92 min); the submit helper
+  excludes them by default. To exclude on an already-pending job:
+  `scontrol update JobId=<id> ExcNodeList="c[2204-2207],d1025"`.
 - Max **8 jobs queued+running per user** (QOSMaxSubmitJobPerUserLimit) -- batch sweeps accordingly.
 - `sbatch` can fail transiently with "Unexpected message received" -- run `squeue -u $USER` before
   retrying so a job isn't submitted twice.

@@ -535,3 +535,7 @@ MobileNet runs (mob-ft, mob-fidip) to be submitted once the init job finishes (8
   END_EPOCH 40, LR_STEP [30], LR 1e-3 as shipped): **mob-ft 11386820** (LAMBDA 0, PRE 0) and
   **mob-fidip 11386845** (LAMBDA 5e-4, PRE 10). Both sbatch calls said "Unexpected message";
   both appeared once in sacct. Reference: released `mobile_fidip.pth` Test100 79.2.
+- **Slow-node issue again:** aug-cj-s1 (11386742) landed on d1025, a **Tesla T4**: 14 epochs in
+  32 min (~2.3 min/epoch) -> 40 epochs needs ~92 min vs the 1.5 h limit; likely to time out
+  around epoch 38 (after the LR step, but without `final_state.pth`). Added d1025 to the
+  exclusion on all 7 pending jobs (`scontrol update`) and to the submit helper default.
