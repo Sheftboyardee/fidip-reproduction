@@ -121,6 +121,7 @@ jobs until resume is fixed.
 | round 3 | adv-only/bnfreeze repeats + Test500 eval of 31 ckpts | 11332165 11332174 11332183 11332187; eval 11332206 11332236 11332224 11332831 | all COMPLETED | `results/eval500*.csv` |
 | round 4 | 40-epoch ft40-s1/s2, adv40-s1/s2 (+ dependent eval500-04) | 11333089 11333092 11333095 11333110 (+ replacement adv40-s3 11334290, evals 11333148 11334329) | all COMPLETED (adv40-s1 TIMEOUT, excluded) | `output/<tag>` |
 | round 5 | aug-cj-s2/s3, aug-geo-s1/s2, aug-light-s1/s2, mob-ft, mob-fidip (+ evals 11388501 11389154 11389155) | 11386778 11387264 11386746 11386785 11386757 11386795 11386820 11386845 | all COMPLETED (aug-cj-s1 11386742 cancelled on T4) | `output/<tag>` |
+| round 6 | mob-ft120-s1/s2, mob-ft200-s1/s2 (+ eval 11389519) | 11389498 11389506 11389505 11389508 | all COMPLETED | `output/<tag>` |
 
 ## Guardrails
 

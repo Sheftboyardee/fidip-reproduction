@@ -21,6 +21,8 @@
 | Setup | n | **Test400** (final ckpt) | Test400 (best ckpt) | Test100 (final) | Test100 (best) |
 |---|---|---|---|---|---|
 | Released FiDIP (`mobile_fidip.pth`, COCO-pretrained) | 1 | -- | 68.3 | -- | 79.2 |
+| MobileNetV2 ImageNet init, fine-tune, 200 ep (LR steps 150, 180) | 2 | 45.4 ± 1.0 | 45.7 ± 0.8 | 58.5 ± 0.6 | 60.6 ± 0.3 |
+| MobileNetV2 ImageNet init, fine-tune, 120 ep (LR steps 90, 110) | 2 | 43.8 ± 0.1 | 45.2 ± 1.7 | 56.3 ± 0.5 | 57.9 ± 0.1 |
 | MobileNetV2 ImageNet init, fine-tune, 40 ep | 1 | 43.5 | 43.5 | 57.3 | 57.3 |
 | MobileNetV2 ImageNet init, FiDIP (LAMBDA 5e-4, PRE 10), 40 ep | 1 | 8.7 | 12.1 | 9.0 | 17.2 |
 

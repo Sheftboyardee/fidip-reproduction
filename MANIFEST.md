@@ -123,6 +123,10 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-26 round5 aug-light-s2 (job 11386795) | same | `output/aug-light-s2/.../final_state.pth` | 90.5 | -- | -- | -- | Test400 final 88.5 |
 | 2026-10-26 round5 mob-ft (job 11386820) | mobile cfg + `MODEL.PRETRAINED models/imagenet/mobilenet_v2_pose_init.pth TRAIN.END_EPOCH 40 TRAIN.LR_STEP [30]` | `output/mob-ft/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 57.3 | -- | -- | -- | Test400 43.5; ImageNet init, not comparable to paper |
 | 2026-10-26 round5 mob-fidip (job 11386845) | same + `TRAIN.PRE_EPOCH 10 TRAIN.LAMBDA 0.0005` | `output/mob-fidip/.../final_state.pth` | 9.0 | -- | -- | -- | collapsed (best 17.2 @ep20); Test400 8.7 |
+| 2026-10-26 round6 mob-ft120-s1 (job 11389498) | mobile cfg + ImageNet init + `TRAIN.END_EPOCH 120 TRAIN.LR_STEP [90,110]` | `output/mob-ft120-s1/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 56.7 | -- | -- | -- | Test400 final 43.9 |
+| 2026-10-26 round6 mob-ft120-s2 (job 11389506) | mobile cfg + ImageNet init + `same` | `output/mob-ft120-s2/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 55.9 | -- | -- | -- | Test400 final 43.8 |
+| 2026-10-26 round6 mob-ft200-s1 (job 11389505) | mobile cfg + ImageNet init + `TRAIN.END_EPOCH 200 TRAIN.LR_STEP [150,180]` | `output/mob-ft200-s1/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 58.1 | -- | -- | -- | Test400 final 44.6 |
+| 2026-10-26 round6 mob-ft200-s2 (job 11389508) | mobile cfg + ImageNet init + `same` | `output/mob-ft200-s2/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 59.0 | -- | -- | -- | Test400 final 46.1 (best MobileNet we trained) |
 
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).

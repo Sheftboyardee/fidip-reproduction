@@ -594,3 +594,22 @@ fine-tune only (LAMBDA 0, PRE 0), 2 seeds per length, `--time=01:30:00`, slow no
 | eval500-09 | 11389519 | -- | Test400/Test100 of best+final, `--dependency=afterany` on all four |
 
 **Compare against:** mob-ft (40 ep) Test400 43.5; released COCO-pretrained `mobile_fidip.pth` 68.3.
+
+### Round 6 results (2026-10-26)
+
+| Run | Test100 best (ep) / final | **Test400 final** |
+|---|---|---|
+| mob-ft (40 ep, earlier) | 57.3 (40) / 57.3 | 43.5 |
+| mob-ft120-s1 / s2 | 58.0 (109) / 56.7, 57.8 (96) / 55.9 | 43.9, 43.8 |
+| mob-ft200-s1 / s2 | 60.4 (69) / 58.1, 60.7 (194) / 59.0 | 44.6, 46.1 |
+| released `mobile_fidip.pth` | 79.2 | 68.3 (single ckpt) |
+
+**Conclusions**
+- Longer training helps a little: **200 ep -> Test400 45.4 ± 1.0 (+1.9 over 40 ep)**; 120 ep
+  gives ~nothing (43.8 ± 0.1). Most of the gain arrives before the first LR step (mob-ft200-s1
+  was 59.2 Test100 at epoch 90 vs 50.8 at epoch 40) -- the model keeps learning slowly at LR 1e-3.
+- **Training length is not what separates us from the released model: still ~23 AP short on
+  Test400 (45.4 vs 68.3).** The missing ingredient is COCO pose pretraining of the whole network
+  (head included), which 1200 infant images cannot replace. Further MobileNet gains need that
+  checkpoint (ask the authors) or our own COCO pre-training.
+- Runtime: 120 ep ~18-26 min, 200 ep ~45 min on V100-SXM2/H200 -- cheap to explore if needed.
