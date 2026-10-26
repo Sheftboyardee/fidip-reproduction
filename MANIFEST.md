@@ -36,7 +36,7 @@ noted.
 |---|---|---|---|
 | `w48_384×288.pth` (DarkPose HRNet-W48 COCO; note Unicode `×` in name, matches config) | [TGA_models](https://drive.google.com/drive/folders/14kAA1zXuKODYgrRiQmKnVcipbY7RedVV) | `models/coco/w48_384×288.pth` | downloaded 2026-10-08 (255 MB) |
 | `hrnet_fidip.pth` | [FiDIP_models](https://drive.google.com/drive/folders/108P-1SnTqaj3xNtjYZ1o7T8z6UvUYuiC) | `models/hrnet_fidip.pth` | downloaded 2026-10-08 (255 MB) |
-| `mobile_fidip.pth` | same | `models/mobile_fidip.pth` | downloaded 2026-10-08 (17 MB) |
+| `mobile_fidip.pth` | same | `models/mobile_fidip.pth` | downloaded 2026-10-08 (17 MB); Test100 79.2 / Test400 68.3 |
 
 Checkpoint md5 (identical on laptop and Explorer `~/Infant-Pose-Estimation/models/`):
 `hrnet_fidip.pth` c1b4994799f08e6cbc44942f44472790, `mobile_fidip.pth` 049dbf22c3131bb72872bc744a1eefe5,
@@ -68,6 +68,12 @@ the prediction JSONs used for every reported number were kept.
 | Test400 | Test500 minus Test100 image ids (computed in `scripts/subset_ap.py`) | **unbiased held-out set** |
 
 All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eval500_summary.md`.
+
+## Derived starting weights
+
+| File | How | Path (Explorer) |
+|---|---|---|
+| `mobilenet_v2_pose_init.pth` | torchvision ImageNet MobileNetV2 (`mobilenet_v2-b0353104.pth`, download.pytorch.org) mapped by position onto PoseMobileNet `features.*` via `scripts/make_mobilenet_init.py` (job 11386711) | `~/Infant-Pose-Estimation/models/imagenet/` |
 
 ## Configs
 
@@ -109,6 +115,14 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-23 round4 adv40-s2 (job 11333110) | + `TRAIN.PRE_EPOCH 0 TRAIN.LAMBDA 0.0005` | `output/adv40-s2/.../final_state.pth` | 91.6 | -- | -- | -- | Test400 final 89.7 |
 | 2026-10-23 round4 adv40-s3 (job 11334290) | same, excluded slow nodes | `output/adv40-s3/.../final_state.pth` | 91.8 | -- | -- | -- | Test400 final 89.9 |
 | 2026-10-23 round4 adv40-s1 (job 11333095) | same | `output/adv40-s1/.../model_best.pth` | 92.2 | -- | -- | -- | TIMEOUT at epoch 26 (V100-PCIe node), excluded |
+| 2026-10-26 round5 aug-cj-s2 (job 11386778) | ft40 + `DATASET.COLOR_JITTER 0.4` | `output/aug-cj-s2/.../final_state.pth` | 92.1 | -- | -- | -- | Test400 final 90.3 |
+| 2026-10-26 round5 aug-cj-s3 (job 11387264) | same (replaces aug-cj-s1, cancelled on T4) | `output/aug-cj-s3/.../final_state.pth` | 92.5 | -- | -- | -- | Test400 final 90.3 |
+| 2026-10-26 round5 aug-geo-s1 (job 11386746) | ft40 + `DATASET.ROT_FACTOR 60 DATASET.SCALE_FACTOR 0.5` | `output/aug-geo-s1/.../final_state.pth` | 92.8 | -- | -- | -- | Test400 final 90.0 |
+| 2026-10-26 round5 aug-geo-s2 (job 11386785) | same | `output/aug-geo-s2/.../final_state.pth` | 93.7 | -- | -- | -- | Test400 final 90.3 (Test100 best 93.9) |
+| 2026-10-26 round5 aug-light-s1 (job 11386757) | ft40 + `DATASET.ROT_FACTOR 15 DATASET.SCALE_FACTOR 0.15 DATASET.PROB_HALF_BODY 0.0` | `output/aug-light-s1/.../final_state.pth` | 90.7 | -- | -- | -- | Test400 final 88.3 |
+| 2026-10-26 round5 aug-light-s2 (job 11386795) | same | `output/aug-light-s2/.../final_state.pth` | 90.5 | -- | -- | -- | Test400 final 88.5 |
+| 2026-10-26 round5 mob-ft (job 11386820) | mobile cfg + `MODEL.PRETRAINED models/imagenet/mobilenet_v2_pose_init.pth TRAIN.END_EPOCH 40 TRAIN.LR_STEP [30]` | `output/mob-ft/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 57.3 | -- | -- | -- | Test400 43.5; ImageNet init, not comparable to paper |
+| 2026-10-26 round5 mob-fidip (job 11386845) | same + `TRAIN.PRE_EPOCH 10 TRAIN.LAMBDA 0.0005` | `output/mob-fidip/.../final_state.pth` | 9.0 | -- | -- | -- | collapsed (best 17.2 @ep20); Test400 8.7 |
 
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).

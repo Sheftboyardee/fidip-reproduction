@@ -542,3 +542,39 @@ MobileNet runs (mob-ft, mob-fidip) to be submitted once the init job finishes (8
 - User chose cancel + resubmit: scancel 11386742 after 37 min (partial output left in
   `output/aug-cj-s1`, not used); replacement **aug-cj-s3 = 11387264** (new OUTPUT_DIR so it
   doesn't auto-resume the cancelled run), excluded from c[2204-2207],d1025.
+
+### Round 5 results (2026-10-26)
+
+Test400 = held-out 400 images (unbiased); full tables in `results/eval500_summary.md`.
+
+| Run | Test100 best / final | **Test400 best / final** |
+|---|---|---|
+| aug-cj-s2 / aug-cj-s3 (colour jitter 0.4) | 92.5 / 92.1, 93.2 / 92.5 | 90.3 / 90.3, 89.8 / 90.3 |
+| aug-geo-s1 / aug-geo-s2 (rot 60, scale 0.5) | 93.3 / 92.8, 93.9 / 93.7 | 89.4 / 90.0, 90.4 / 90.3 |
+| aug-light-s1 / aug-light-s2 (rot 15, scale 0.15, no half-body) | 91.6 / 90.7, 91.1 / 90.5 | 88.4 / 88.3, 88.2 / 88.5 |
+| mob-ft (MobileNetV2 ImageNet init, fine-tune) | 57.3 / 57.3 | 43.5 / 43.5 |
+| mob-fidip (ImageNet init, FiDIP) | 17.2 / 9.0 | 12.1 / 8.7 |
+| released `mobile_fidip.pth` (reference) | 79.2 | 68.3 |
+
+**Augmentation conclusions (vs ft40 baseline Test400 final 90.2 ± 0.2)**
+- **Less augmentation clearly hurts: aug-light 88.4 ± 0.1 (-1.8).** Consistent across seeds and
+  on both test sets -> with 1200 training images the default geometric augmentation matters.
+- **More geometric augmentation: no held-out gain (90.1 ± 0.3)**, despite the best Test100 numbers
+  of the whole project (aug-geo-s2 final 93.7, above the paper's 93.6). The Test100 jump did not
+  transfer to Test400 -- a direct example of Test100 being too small to rank methods, and the
+  reason all conclusions here use Test400.
+- **Colour jitter: 90.3 ± 0.0, +0.1 over baseline** -- within noise; hypothesis (colour jitter
+  bridges synthetic->real) **not supported** at this strength. Still the top retrained setting,
+  0.4 below the released checkpoint (90.7).
+
+**MobileNet conclusions**
+- ImageNet init (no COCO pose pretraining) costs ~25 AP on Test400 (43.5 vs released 68.3):
+  most of Pose-MobileNet's infant performance comes from COCO pose pretraining. mob-ft was still
+  improving at epoch 40 (best = final), so longer training would help somewhat.
+- **FiDIP from ImageNet init collapses (8.7):** per-batch domain-classifier accuracy stays at
+  chance (0.43-0.69) all run while pose accuracy lags (0.29 vs 0.67 for mob-ft at ep 32). With
+  a randomly initialised head the adversary makes features domain-uninformative before they
+  become pose-informative; the pose loss stays positive, so this is not the -BCE runaway seen
+  with HRNet at large LAMBDA.
+- MobileNet loses much more on the harder Test400 than HRNet (released: 79.2 -> 68.3 vs
+  93.6 -> 90.7).
