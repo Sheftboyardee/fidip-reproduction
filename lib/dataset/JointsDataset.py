@@ -47,6 +47,7 @@ class JointsDataset(Dataset):
         self.num_joints_half_body = cfg.DATASET.NUM_JOINTS_HALF_BODY
         self.prob_half_body = cfg.DATASET.PROB_HALF_BODY
         self.color_rgb = cfg.DATASET.COLOR_RGB
+        self.color_jitter = cfg.DATASET.COLOR_JITTER
 
         self.target_type = cfg.MODEL.TARGET_TYPE
         self.image_size = np.array(cfg.MODEL.IMAGE_SIZE)
@@ -63,6 +64,17 @@ class JointsDataset(Dataset):
 
     def evaluate(self, cfg, preds, output_dir, *args, **kwargs):
         raise NotImplementedError
+
+    def _color_jitter(self, img):
+        """Brightness, contrast and saturation jitter on a uint8 HxWx3 image."""
+        j = self.color_jitter
+        img = img.astype(np.float32)
+        img *= np.random.uniform(1 - j, 1 + j)
+        mean = img.mean()
+        img = (img - mean) * np.random.uniform(1 - j, 1 + j) + mean
+        gray = img.mean(axis=2, keepdims=True)
+        img = (img - gray) * np.random.uniform(1 - j, 1 + j) + gray
+        return np.clip(img, 0, 255).astype(np.uint8)
 
     def half_body_transform(self, joints, joints_vis):
         upper_joints = []
@@ -180,6 +192,9 @@ class JointsDataset(Dataset):
             trans,
             (int(self.image_size[0]), int(self.image_size[1])),
             flags=cv2.INTER_LINEAR)
+
+        if self.is_train and self.color_jitter > 0:
+            input = self._color_jitter(input)
 
         if self.transform:
             input = self.transform(input)

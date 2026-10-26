@@ -69,6 +69,9 @@ _C.DATASET.ROT_FACTOR = 30
 _C.DATASET.PROB_HALF_BODY = 0.0
 _C.DATASET.NUM_JOINTS_HALF_BODY = 8
 _C.DATASET.COLOR_RGB = False
+# Random brightness/contrast/saturation jitter on training crops: each factor ~ U[1-j, 1+j].
+# 0 disables (original behaviour).
+_C.DATASET.COLOR_JITTER = 0.0
 
 # train
 _C.TRAIN = CN()
