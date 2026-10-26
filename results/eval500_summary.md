@@ -27,3 +27,31 @@
 | MobileNetV2 ImageNet init, FiDIP (LAMBDA 5e-4, PRE 10), 40 ep | 1 | 8.7 | 12.1 | 9.0 | 17.2 |
 
 adv40-s1 (timed out on a slow node) and aug-cj-s1 (cancelled on a slow node) are excluded. Released models have a single checkpoint.
+
+### Round 7: stage A weight soups (HRNet-W48, no training) -- single measurement each
+
+Members: ft40-s1/s2 Test400 90.3/90.0, aug-cj-s2/s3 90.3/90.3 (mean 90.2). `-bn` = BN stats recalibrated on train_infant, `-raw` = BN stats averaged.
+
+| Soup | Test400 raw / **bn** | Test100 raw / bn |
+|---|---|---|
+| A1 ft40 s1+s2 | 90.7 / 90.8 | 92.6 / 93.2 |
+| A1 aug-cj s2+s3 | 90.5 / 91.1 | 92.3 / 92.9 |
+| **A1 four (pre-registered report)** | 90.7 / **91.1** | 92.5 / 92.9 |
+| A1 six (+ aug-geo s1/s2) | 91.0 / 91.0 | 93.0 / 93.3 |
+| A2 WiSE-FT α=0.5 (s1, s2) | 89.8, 89.4 / 89.2, 89.3 | 92.5, 93.0 / 92.3, 92.5 |
+| A2 WiSE-FT α=0.7 | 90.5, 90.7 / 90.4, 90.2 | 93.2, 93.3 / 92.8, 93.2 |
+| A2 WiSE-FT α=0.8 | 90.5, 90.9 / 90.8, 90.6 | 93.3, 93.3 / 92.8, 93.5 |
+| A2 WiSE-FT α=0.9 | 90.7, 90.5 / 90.7, 90.7 | 92.8, 92.6 / 93.0, 93.2 |
+| A3 released 50% + ft40 (s1, s2) | 91.1, 90.9 / 90.9, 90.9 | 93.6, 93.6 / 93.1, 93.2 |
+| A3 released 70% + ft40 (s1, s2) | 91.1, 91.0 / 90.3, 90.7 | 94.0, 93.6 / 93.0, 93.2 |
+
+### Round 7: stage D1 zero-shot (COCO-trained, no infant training, GT boxes, flip test)
+
+| Model | Test400 | Test100 |
+|---|---|---|
+| HRNet-W48 DarkPose COCO (`w48_384×288.pth`) | 86.7 | 88.5 |
+| ViTPose-B simple decoder | 84.8 | 86.1 |
+| ViTPose-B | 84.2 | 87.3 |
+| ViTPose++-B (COCO expert) | 87.5 | 89.8 |
+| ViTPose++-L | 89.4 | 92.3 |
+| **ViTPose++-H** | **90.1** | **92.7** |

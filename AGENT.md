@@ -675,3 +675,46 @@ User: "Start A and D in parallel."
 | soups | 11394628 | builds 32 soups into `output/soups/` |
 | eval500-A-raw | 11394636 | afterok soups, `output/soups/eval_raw.txt` |
 | eval500-A-bn | 11394637 | afterok soups, `output/soups/eval_bn.txt` (+ coco-w48) |
+
+### Round 7 results (2026-10-26)
+
+All 5 jobs completed with no failures.
+- Full tables: `results/eval500_summary.md`.
+- Raw rows: `results/eval500_raw.csv`.
+
+**Stage A: weight soups. Seed members' Test400 mean is 90.2; released hrnet_fidip is 90.7.**
+
+| Soup | Test400 raw / bn | Test100 raw / bn |
+|---|---|---|
+| A1 ft40 s1+s2 | 90.7 / 90.8 | 92.6 / 93.2 |
+| A1 aug-cj s2+s3 | 90.5 / 91.1 | 92.3 / 92.9 |
+| **A1 four (pre-registered)** | 90.7 / **91.1** | 92.5 / 92.9 |
+| A1 six (+ aug-geo) | 91.0 / 91.0 | 93.0 / 93.3 |
+| A2 WiSE-FT α 0.5 / 0.7 / 0.8 / 0.9 (mean of s1, s2; raw and bn pooled) | 89.4 / 90.5 / 90.7 / 90.7 | ~92.6 / 93.1 / 93.2 / 92.9 |
+| A3 released ⊕ ft40 (4 soups × raw/bn) | 90.3-91.1 | 93.0-94.0 |
+
+- **Seed soups work.**
+  - The pre-registered uniform soup of the four seeds reaches **Test400 91.1**. That is +0.9
+    over the mean of its members, which passes the ≥ 0.5 rule against our own recipe.
+  - Every seed soup lands at 90.7-91.1, so this is a consistent effect, not one lucky draw.
+  - Against the released model (90.7) the soup is +0.4. That is a real but not decisive
+    improvement under our rule.
+  - On Test100 it is 92.9 vs 93.6. The paper's own split still favours the released model.
+- **BN recalibration** helps the seed soups by +0.1 to +0.6. It is mixed for WiSE-FT and A3.
+- **WiSE-FT gives no gain.**
+  - α 0.8-0.9 matches the fine-tuned endpoint (90.2-90.3). α 0.5 loses about 1 AP.
+  - Pulling back toward COCO does not help. Forgetting adult-pose knowledge is not the
+    bottleneck, so stage C3 (L2-SP) is deprioritised.
+- **Souping with the released model** gives about 91.0, the same as souping our own seeds. Its
+  best Test100 (94.0, A3-rel70-s1-raw) beats 93.6, but that is a pick among 8 soups, so we
+  don't claim it.
+
+**Stage D1: zero-shot, no infant training.**
+- **COCO HRNet-W48: Test400 86.7.** Fine-tuning on SyRIP adds only about +3.5 on top of that.
+- **ViTPose++-H: Test400 90.1, Test100 92.7.**
+  - That is +3.4 over HRNet zero-shot, and it ties our fine-tuned HRNet with zero infant images.
+  - Scaling is monotonic: ++-B 87.5 → ++-L 89.4 → ++-H 90.1.
+- If fine-tuning adds even part of HRNet's +3.5, ViTPose++-L/H should clear 91-93.
+- **D2 (fine-tuning ViTPose++ on SyRIP) is a clear go.**
+
+**Storage:** soups 7.7 GB under `output/soups/`; HF cache 6.1 GB. Both are on /projects.

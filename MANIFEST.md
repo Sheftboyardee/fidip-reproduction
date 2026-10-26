@@ -128,7 +128,15 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-26 round6 mob-ft200-s1 (job 11389505) | mobile cfg + ImageNet init + `TRAIN.END_EPOCH 200 TRAIN.LR_STEP [150,180]` | `output/mob-ft200-s1/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 58.1 | -- | -- | -- | Test400 final 44.6 |
 | 2026-10-26 round6 mob-ft200-s2 (job 11389508) | mobile cfg + ImageNet init + `same` | `output/mob-ft200-s2/syrip/adaptive_pose_mobile/mobile_224x224_adam_lr1e-3_infant/final_state.pth` | 59.0 | -- | -- | -- | Test400 final 46.1 (best MobileNet we trained) |
 
+| 2026-10-26 round7 stage A soups (job 11394628; eval 11394636/11394637) | `scripts/weight_average.py` over `scripts/stageA_soups.txt` (32 soups) | `output/soups/<tag>.pth` (7.7 GB on /projects) | see `results/eval500_summary.md` | -- | -- | -- | **A1-four-bn** (uniform ft40-s1/s2 + aug-cj-s2/s3, BN recal) md5 f0f0e80ffa0416b0c4ca438c23e17cca: Test400 91.1, Test100 92.9 |
+| 2026-10-26 round7 stage D1 ViTPose zero-shot (job 11394634) | `tools/test_vitpose.py`, models in `scripts/vitpose_models.txt` | HF cache `/projects/ML_Small_Data/sheft.n/fidip/hf_cache` (6.1 GB); predictions `eval500/vitpose/zs-*.json` | ViTPose++-H 92.7 | -- | -- | -- | Test400: ViTPose++-H 90.1, ++-L 89.4, ++-B 87.5; COCO HRNet-W48 zero-shot 86.7 |
+
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).
 - Best model we trained: `ft40-s1` (job 11333089), `output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth` on Explorer: Test400 90.3, Test100 92.4 (final epoch). Recipe mean over 2 seeds: Test400 90.2 ± 0.2.
 - All checkpoint scores: `results/eval500.csv`; summary table: `results/eval500_summary.md`.
+
+**Update 2026-10-26 (round 7):** best HRNet-W48 model is now the pre-registered uniform soup
+`output/soups/A1-four-bn.pth` (md5 f0f0e80ffa0416b0c4ca438c23e17cca; built by job 11394628 from
+ft40-s1, ft40-s2, aug-cj-s2, aug-cj-s3 with BN recalibration): **Test400 91.1, Test100 92.9**
+(released hrnet_fidip: 90.7 / 93.6).
