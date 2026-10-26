@@ -529,3 +529,9 @@ training images are synthetic renders with different colour statistics from real
 | aug-light | 11386757 / 11386795 | ROT_FACTOR 15, SCALE_FACTOR 0.15, PROB_HALF_BODY 0 |
 
 MobileNet runs (mob-ft, mob-fidip) to be submitted once the init job finishes (8-job cap).
+- Init job 11386711 COMPLETED: real ImageNet weights (`mobilenet_v2-b0353104.pth`, 14.2 MB) ->
+  `models/imagenet/mobilenet_v2_pose_init.pth`, 312 tensors, 0 mismatches after `init_weights`.
+- MobileNet runs (mobile cfg, `MODEL.PRETRAINED models/imagenet/mobilenet_v2_pose_init.pth`,
+  END_EPOCH 40, LR_STEP [30], LR 1e-3 as shipped): **mob-ft 11386820** (LAMBDA 0, PRE 0) and
+  **mob-fidip 11386845** (LAMBDA 5e-4, PRE 10). Both sbatch calls said "Unexpected message";
+  both appeared once in sacct. Reference: released `mobile_fidip.pth` Test100 79.2.
