@@ -1,0 +1,20 @@
+# Stage A (PLAN.md) soups: <tag> <weight:ckpt> ...   -- each built twice: -raw (averaged BN stats) and -bn (BN recalibrated)
+# A1 seed soups
+A1-ft40 1:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A1-cj 1:output/aug-cj-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-cj-s3/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A1-four 1:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-cj-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-cj-s3/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A1-six 1:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-cj-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-cj-s3/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-geo-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth 1:output/aug-geo-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+# A2 WiSE-FT: alpha = weight on the fine-tuned model, rest on COCO init
+A2-wise5-s1 0.5:models/coco/w48_384×288.pth 0.5:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise7-s1 0.3:models/coco/w48_384×288.pth 0.7:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise8-s1 0.2:models/coco/w48_384×288.pth 0.8:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise9-s1 0.1:models/coco/w48_384×288.pth 0.9:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise5-s2 0.5:models/coco/w48_384×288.pth 0.5:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise7-s2 0.3:models/coco/w48_384×288.pth 0.7:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise8-s2 0.2:models/coco/w48_384×288.pth 0.8:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A2-wise9-s2 0.1:models/coco/w48_384×288.pth 0.9:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+# A3 soups with the released FiDIP model (same COCO init)
+A3-rel50-s1 0.5:models/hrnet_fidip.pth 0.5:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A3-rel70-s1 0.7:models/hrnet_fidip.pth 0.3:output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A3-rel50-s2 0.5:models/hrnet_fidip.pth 0.5:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth
+A3-rel70-s2 0.7:models/hrnet_fidip.pth 0.3:output/ft40-s2/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth

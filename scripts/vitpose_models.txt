@@ -1,0 +1,5 @@
+usyd-community/vitpose-base-simple
+usyd-community/vitpose-base
+usyd-community/vitpose-plus-base
+usyd-community/vitpose-plus-large
+usyd-community/vitpose-plus-huge
