@@ -539,3 +539,6 @@ MobileNet runs (mob-ft, mob-fidip) to be submitted once the init job finishes (8
   32 min (~2.3 min/epoch) -> 40 epochs needs ~92 min vs the 1.5 h limit; likely to time out
   around epoch 38 (after the LR step, but without `final_state.pth`). Added d1025 to the
   exclusion on all 7 pending jobs (`scontrol update`) and to the submit helper default.
+- User chose cancel + resubmit: scancel 11386742 after 37 min (partial output left in
+  `output/aug-cj-s1`, not used); replacement **aug-cj-s3 = 11387264** (new OUTPUT_DIR so it
+  doesn't auto-resume the cancelled run), excluded from c[2204-2207],d1025.
