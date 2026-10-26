@@ -613,3 +613,26 @@ fine-tune only (LAMBDA 0, PRE 0), 2 seeds per length, `--time=01:30:00`, slow no
   (head included), which 1200 infant images cannot replace. Further MobileNet gains need that
   checkpoint (ask the authors) or our own COCO pre-training.
 - Runtime: 120 ep ~18-26 min, 200 ep ~45 min on V100-SXM2/H200 -- cheap to explore if needed.
+
+## 2026-10-26 -- Literature review and improvement plan (MobileNet parked)
+
+User asked for a literature search on recent directions that could beat the FiDIP baseline, plus
+a multi-step plan of hypotheses. Full write-up with sources is in **PLAN.md**.
+
+Main findings from the literature:
+- Generic large models (ViTPose) beat infant-specialised ones on infants (Jahn et al. 2025, two
+  papers; SMaL 2022).
+- Mean-teacher self-training (SHIFT, CVPRW 2025) beats adversarial alignment, including FiDIP.
+  This matches our own finding that FiDIP's adversarial term does not help.
+- Weight averaging (WiSE-FT / model soups) is untested on pose estimation.
+
+Stages, ordered by cost:
+- A: eval-only weight soups and WiSE-FT of checkpoints we already have
+- B: value of the synthetic data (real oversampling vs real-only)
+- C: regularised fine-tuning (freeze, layer-wise LR decay, L2-SP)
+- D: ViTPose zero-shot, then fine-tuned. Largest expected gain.
+- E: self-training on unlabelled infant images. Gated on obtaining non-test unlabelled data.
+- F: label-noise audit
+
+Decision rule: 2-seed Test400 mean must beat the comparison by ≥ 0.5 AP (the seed noise is
+±0.2-0.3). The bar is the released hrnet_fidip at 90.7 Test400.
