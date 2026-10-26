@@ -636,3 +636,42 @@ Stages, ordered by cost:
 
 Decision rule: 2-seed Test400 mean must beat the comparison by ≥ 0.5 AP (the seed noise is
 ±0.2-0.3). The bar is the released hrnet_fidip at 90.7 Test400.
+
+## 2026-10-26 -- Round 7: PLAN.md stages A and D1 in parallel
+
+User: "Start A and D in parallel."
+
+**Stage A: weight soups / WiSE-FT. Evaluation only; no training.**
+- `scripts/weight_average.py` averages state dicts.
+  - Keys of COCO w48, `hrnet_fidip.pth` and our `final_state.pth` were checked identical (1754 tensors).
+  - `--recal-bn` re-estimates BN stats on train_infant with a cumulative average.
+  - Smoke-tested on the laptop.
+- The spec list is `scripts/stageA_soups.txt`:
+  - A1: seed soups. ft40 ×2, aug-cj ×2, those four together, and those plus aug-geo ×2.
+  - A2: WiSE-FT. COCO ↔ ft40-s1/s2 at α 0.5/0.7/0.8/0.9.
+  - A3: released `hrnet_fidip` ↔ ft40-s1/s2 at 50/50 and 70/30.
+- Every soup is built twice: `-raw` (averaged BN stats) and `-bn` (recalibrated BN).
+- COCO w48 zero-shot is also scored, as the D1 reference.
+- Pre-registered rule: the reported soup is the uniform one (A1-four or A1-six), not whichever
+  scores best on Test400.
+
+**Stage D1: ViTPose zero-shot.**
+- `tools/test_vitpose.py` runs HF transformers ViTPose with GT boxes, flip test and the repo's
+  rescoring. It writes a COCO results json scored by `subset_ap.py`.
+- Models are listed in `scripts/vitpose_models.txt`:
+  - base-simple
+  - base
+  - plus-base, plus-large and plus-huge, using expert 0, the COCO head
+- Laptop smoke test, ViTPose-B-simple zero-shot on Test100: **86.1 AP with flip, 85.4 without.**
+  So the pipeline is sane, and the model is already strong with no infant training.
+- transformers 4.53.3 installed in the laptop `fidip` env. Explorer gets the same pin through
+  `scripts/vitpose_setup.sbatch`, with the HF cache at
+  `/projects/ML_Small_Data/sheft.n/fidip/hf_cache`.
+
+| Job | ID | Notes |
+|---|---|---|
+| vitpose-setup | 11394626 | short partition: install transformers, pre-download 5 checkpoints |
+| vitpose-zs | 11394634 | afterok setup |
+| soups | 11394628 | builds 32 soups into `output/soups/` |
+| eval500-A-raw | 11394636 | afterok soups, `output/soups/eval_raw.txt` |
+| eval500-A-bn | 11394637 | afterok soups, `output/soups/eval_bn.txt` (+ coco-w48) |
