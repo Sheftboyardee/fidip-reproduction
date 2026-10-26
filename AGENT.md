@@ -499,3 +499,33 @@ Released model has a single checkpoint (Test400 90.7). adv40-s1 (job 11333095) t
   Home 61 GB -> 7.4 GB. `flock` verified on the project filesystem through the symlink.
   `eval500.sbatch` now deletes `feature.npy` after scoring; `.gitignore` also matches the
   symlinks (`/output`, `/eval500`).
+
+## 2026-10-26 -- Round 5: MobileNet backbone + data augmentation
+
+**Asked:** try the MobileNet backbone, then data augmentation.
+
+**MobileNet starting point problem:** the paper's MobileNet numbers start from a COCO-pretrained
+Pose-MobileNet (46.5 AP zero-shot). The mobile config has `MODEL.PRETRAINED: ''` (random init),
+the repo ships no such checkpoint, the public TGA_models Drive folder only has HRNet / ResNet /
+Hourglass COCO models (checked in the browser), and Explorer has no shared COCO copy.
+`mobile_fidip.pth` is already SyRIP-trained, so can't be a start. **User chose: ImageNet init.**
+- PoseMobileNet's 312 `features.*` tensors match torchvision MobileNetV2 one-to-one in order and
+  shape (not names) -> `scripts/make_mobilenet_init.py` maps them by position and verifies via
+  `init_weights` (0 mismatches in a local test with random weights). Head stays random.
+- Built on Explorer in job 11386711 (downloads `mobilenet_v2-b0353104.pth`, ~14 MB) ->
+  `models/imagenet/mobilenet_v2_pose_init.pth`. sbatch said "Unexpected message"; queued late.
+- Expect results well below the paper's 78.9 / 79.2: not comparable (no COCO pose pretraining).
+
+**Augmentation (HRNet, best recipe = ft40: shipped cfg + END_EPOCH 40, LR_STEP [30]; baseline
+Test400 final 90.2 ± 0.2).** Existing: flip, scale (sf 0.35), rotation (rf 45, 60% of samples),
+half-body (p 0.3). Added `DATASET.COLOR_JITTER` (brightness/contrast/saturation ~U[1-j,1+j],
+training crops only; default 0). Hypothesis: colour jitter helps most, since 1000 of the 1200
+training images are synthetic renders with different colour statistics from real photos.
+
+| Tag | Jobs (s1 / s2) | Change |
+|---|---|---|
+| aug-cj | 11386742 / 11386778 | COLOR_JITTER 0.4 |
+| aug-geo | 11386746 / 11386785 | ROT_FACTOR 60, SCALE_FACTOR 0.5 |
+| aug-light | 11386757 / 11386795 | ROT_FACTOR 15, SCALE_FACTOR 0.15, PROB_HALF_BODY 0 |
+
+MobileNet runs (mob-ft, mob-fidip) to be submitted once the init job finishes (8-job cap).
