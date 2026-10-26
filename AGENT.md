@@ -578,3 +578,19 @@ Test400 = held-out 400 images (unbiased); full tables in `results/eval500_summar
   with HRNet at large LAMBDA.
 - MobileNet loses much more on the harder Test400 than HRNet (released: 79.2 -> 68.3 vs
   93.6 -> 90.7).
+
+## 2026-10-26 -- Round 6: longer MobileNet fine-tuning
+
+**Asked:** run MobileNet fine-tuning longer.
+**Why:** mob-ft (40 ep, 9 min on a V100-SXM2) was still rising: ~49 AP around epoch 29, then
++5 from the LR drop at 30 to 57.3 (Test100) at the final epoch.
+**Setup:** mobile cfg, ImageNet init (`models/imagenet/mobilenet_v2_pose_init.pth`), LR 1e-3,
+fine-tune only (LAMBDA 0, PRE 0), 2 seeds per length, `--time=01:30:00`, slow nodes excluded.
+
+| Tag | Jobs (s1 / s2) | Epochs | LR_STEP |
+|---|---|---|---|
+| mob-ft120 | 11389498 / 11389506 | 120 | [90, 110] |
+| mob-ft200 | 11389505 / 11389508 | 200 | [150, 180] |
+| eval500-09 | 11389519 | -- | Test400/Test100 of best+final, `--dependency=afterany` on all four |
+
+**Compare against:** mob-ft (40 ep) Test400 43.5; released COCO-pretrained `mobile_fidip.pth` 68.3.
