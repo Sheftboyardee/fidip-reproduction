@@ -908,3 +908,49 @@ User: "Yes, delete them and soup the H20 seeds."
   - It is a pre-registered uniform average of the two H20 seeds, not a pick by test score.
 - **The reported recipe number stays the 2-seed H20 mean: 92.8 ± 0.1 Test400.** The soup is
   reported alongside it.
+
+## 2026-10-27 -- Round 10: stages C2 (layer-wise LR decay) and B (real:synthetic mix) on ViTPose++-H
+
+User: "Move into C2 then B next."
+
+Baseline for both stages is the H20 recipe:
+- ViTPose++-H, LR 1e-5, 20 epochs, LR step at epoch 15
+- 2 seeds score Test400 92.8 ± 0.1 and Test100 95.2 ± 0.2
+- the soup scores 93.1
+
+Each config gets one seed first, as a screen. Configs that beat the baseline by ≥ 0.3 get a
+second seed; a claim still needs ≥ 0.5 with 2 seeds.
+
+**C2: layer-wise LR decay** (`TRAIN.LAYER_DECAY`, already in `train_vitpose.py`; groups checked
+on the laptop).
+- Block i of 32 gets LR × decay^(33−i). The embeddings get decay^33, which is 0.18 at 0.95 and
+  0.03 at 0.9. The decoder keeps the full LR.
+- Hypothesis: smaller updates to the generic early layers reduce overfitting to 1200 images.
+
+| Run | Job | Settings |
+|---|---|---|
+| c2-ld95-lr1e-5-s1 | 11400434 | gentle decay |
+| c2-ld90-lr1e-5-s1 | 11400442 | strong decay; nearly freezes early blocks |
+| c2-ld90-lr3e-5-s1 | 11400455 | strong decay + 3× base LR, so middle blocks get about the baseline LR and the head gets more |
+| eval500-C2 | 11400473 | evaluation |
+
+**B: real:synthetic mix, re-scoped after reading the sampler.**
+- `utils/sampler.BalancedBatchSampler` already makes every epoch 50% real / 50% synthetic:
+  1000 synthetic + 200 real × 5. So "oversample the real images" (the original B1) is already
+  the baseline.
+- That sampler also **never shuffles**. Every epoch visits images in the same order; only the
+  augmentation changes.
+- New `MixSampler` (`TRAIN.REAL_FRACTION`):
+  - Same epoch length (2000).
+  - The chosen share of real images, with each pool cycled in a fresh random order.
+  - Fully shuffled.
+  - Composition checked on the laptop: at f = 0.5, every real image appears exactly 5 times.
+
+| Run | Job | Real fraction | Purpose |
+|---|---|---|---|
+| b-rf17-s1 | 11400506 | 1/6 | the dataset's natural mix, no oversampling |
+| b-rf50-s1 | 11400510 | 0.5 | control: baseline mix + shuffling, isolates the shuffle effect |
+| b-rf75-s1 | 11400521 | 0.75 | |
+| b-rf100-s1 | 11400537 | 1.0 | real only = B2 |
+
+- The eval for the B runs will be submitted once a slot frees up; the 8-job cap is reached.
