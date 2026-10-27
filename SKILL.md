@@ -104,6 +104,10 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
     submit <tag> MODEL.HF_NAME usyd-community/vitpose-plus-{large,huge} TRAIN.LR ...
     ```
     Use `TIME=01:30:00`.
+  - **384x288 ViTPose** (`vitpose_plus_384x288_infant.yaml`, AUTO_RESUME true): position embeddings
+    are interpolated on load. Add `TRAIN.GRAD_CKPT True` for ++-H on 32 GB GPUs. A run takes about 4 h,
+    so submit part 1 with `submit`, then 1-2 more `sbatch -J fidip-<tag>-pN --dependency=afterany:<prev>`
+    with the same overrides and OUTPUT_DIR. Each resumes from `checkpoint.pth`; a spare one exits.
   - **Evaluating ViTPose checkpoints:** pass the same HF_NAME, otherwise the wrong architecture
     is built and `strict=False` loading silently drops the weights:
     ```
@@ -149,6 +153,7 @@ jobs until resume is fixed.
 | round 8c/8d (stage D2 seeds) | vit2-l-lr1e-5-s2/s3, vit2-h20-lr1e-5-s1/s2 (+ eval 11398156 11398679) | 11398128 11398145 11398580 11398625 | all COMPLETED. **Best: H20, Test400 92.8 ± 0.1** | `output/<tag>` |
 | round 9 (stage A on D) | vit-soups (CPU), eval500-Dsoup-h/l | 11400326 11400360 11400382 | all COMPLETED. **D-soup-h20: Test400 93.1** | `output/soups/D-soup-*.pth` |
 | round 10 (C2 + B on ViTPose++-H) | c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (+ eval500-C2 11400473); b-rf{17,50,75,100}-s1 (+ eval500-B 11401502) | 11400434 11400442 11400455 11400506 11400510 11400521 11400537 | all COMPLETED (B eval 11401502). Null: Test400 92.6-93.0 | `output/<tag>` |
+| round 11 (B2 confirm + 384x288) | b-rf100-s2 (+ eval500-B2 11410741); d3-h384-lr1e-5-s1 chained p1/p2/p3 (+ eval500-D3 11410743) | 11410487 11410716 11410725 11410732 | running | `output/<tag>` |
 
 ## Guardrails
 

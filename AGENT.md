@@ -1002,3 +1002,37 @@ soup is at 93.1.
 - The remaining levers are data the model has never seen (stage E, unlabelled real infant
   images) and a different architecture or resolution.
 - Training hyper-parameters, layer-wise LR and data mix are not levers here.
+
+## Round 11 (2026-10-27): real-only second seed + ViTPose++-H at 384x288
+
+User request: "Run both optional next steps."
+
+**B2 confirmation.** `b-rf100-s2` (job 11410487) repeats b-rf100-s1 exactly: ViTPose++-H,
+LR 1e-5, 20 epochs, `TRAIN.REAL_FRACTION 1.0` (200 real images only). A 2-seed real-only mean
+within 0.5 of the 92.8 baseline would confirm "synthetic data adds nothing for ViTPose++-H".
+Evaluated by eval500-B2 (11410741).
+
+**D3: input resolution 384x288 (was 256x192).**
+- HF `VitPosePatchEmbeddings` raises on any input size other than the checkpoint's. So
+  `adaptive_pose_vitpose.py` now bicubic-interpolates the position embeddings from a 16x12 to a
+  24x18 grid, and updates the size the decoder head uses to reshape tokens.
+  - Laptop check: ViTPose++-B zero-shot Test100 is 89.3 at 384x288 vs 89.8 native. So the
+    interpolation is sane, though not free before fine-tuning.
+- Config `experiments/syrip/vitpose/vitpose_plus_384x288_infant.yaml`: heatmap 96x72, sigma 3,
+  same as ViTPose's own 384x288 configs. Recipe is otherwise H20 (LR 1e-5, 20 ep, step at 15).
+- **Memory.** Rough estimate: batch 32 at 432 tokens needs about 35 GB of activations plus
+  10 GB of weights and AdamW state. That does not fit a 32 GB V100, so the run uses
+  `TRAIN.GRAD_CKPT True` (gradient checkpointing). This costs ~30% more compute and has no
+  effect on the maths.
+- **Wall time.** Measured on a V100: 10.5 s/iteration, about 11-12 min/epoch
+  (~4 h for 20 epochs). Zero-shot ++-H at 384x288 scores Test100 91.3 (92.7 native). To keep the short-job habit, `train_vitpose.py` now supports
+  `AUTO_RESUME`:
+  - It saves `checkpoint.pth` (model, AdamW, scheduler, scaler, best score, losses) after every
+    epoch, via an atomic rename.
+  - It resumes from that checkpoint, and deletes it when the run finishes.
+  - A spare chained job that starts after `final_state.pth` exists exits without training.
+  - Laptop test (ViTPose++-B): killed after epoch 0, then resumed. The resumed run starts at
+    epoch 1 with the stepped LR and the saved best score, and finishes normally.
+- Jobs: `d3-h384-lr1e-5-s1` 11410716, then -p2 11410725 and -p3 11410732 (each 1:45,
+  `afterany`), then eval500-D3 11410743 (384 cfg).
+- Screening rule unchanged: second seed only if Test400 ≥ 93.1 (+0.3).
