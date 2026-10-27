@@ -169,10 +169,11 @@ style) helps. First do a cheap check: per-keypoint loss trajectories from an exi
 | A: soups / WiSE-FT | done (round 7) | Uniform 4-seed HRNet soup 91.1. That is +0.9 over its members but only +0.4 over released; WiSE-FT gives no gain. |
 | D1: ViTPose zero-shot | done (round 7) | ++-H 90.1 with no infant training; COCO HRNet zero-shot 86.7 |
 | **D2: ViTPose fine-tune** | **done (round 8)** | **++-H LR 1e-5 20 ep: 92.8 ± 0.1 (Test100 95.2), +2.1 over released FiDIP**; ++-L: 91.9 ± 0.3 |
+| A on D: ViTPose seed soups | done (round 9) | **D-soup-h20: 93.1 (Test100 95.7)**, +0.3 over its seeds; L soup 92.2 (+0.4) |
 | B, C, E, F | not started | Re-scope onto ViTPose++-H, the new baseline. |
 
 Candidate next steps on the new baseline, cheapest first:
-- **A on D:** soup the two H20 seeds. Evaluation only.
+- ~~**A on D:** soup the two H20 seeds~~ (done: 93.1).
 - **C2:** layer-wise LR decay.
 - **B:** real-image oversampling.
 - **E:** mean-teacher, once unlabelled infant images are available.

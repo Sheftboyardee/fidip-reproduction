@@ -171,3 +171,15 @@ Results, 2 seeds, final checkpoints:
 - **Test100 95.2 ± 0.2** (vs 93.6)
 
 Checkpoints: `vit2-h20-lr1e-5-s1` and `-s2` (rows above). Per-checkpoint scores are in `results/eval500.csv`.
+
+**Update 2026-10-27 (round 9): best single checkpoint.**
+- `output/soups/D-soup-h20.pth` on Explorer, a uniform weight average of `vit2-h20-lr1e-5-s1`
+  and `-s2` `final_state.pth`.
+  - md5 fb6c2cb06b8e76e7c1223030f4ad0f32, 3.6 GB.
+  - Built by `scripts/vit_soups.sbatch` (job 11400326), scored by job 11400360.
+  - **Test400 93.1, Test100 95.7.**
+- Evaluate it with
+  `CFG=experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml OPTS="MODEL.HF_NAME usyd-community/vitpose-plus-huge"`.
+- `D-soup-l3.pth` (ViTPose++-L, 3 seeds): Test400 92.2, Test100 94.7.
+- Deleted 2026-10-27, at the user's request: the BN-bug outputs `output/vit-*` (round 8 first
+  attempt).

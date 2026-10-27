@@ -68,3 +68,10 @@ Members: ft40-s1/s2 Test400 90.3/90.0, aug-cj-s2/s3 90.3/90.3 (mean 90.2). `-bn`
 | ViTPose++-L, LR 1e-5, 40 ep (LR step 30) | 3 | 91.9 ± 0.3 | 92.3 ± 0.1 | 94.5 ± 0.1 | 94.9 ± 0.2 |
 | ViTPose++-L, LR 5e-5, 40 ep | 1 | 90.5 | 91.9 | 93.1 | 94.0 |
 | *reference: released hrnet_fidip* | 1 | 90.7 | -- | 93.6 | -- |
+
+### Round 9: stage A on D, uniform seed soups of fine-tuned ViTPose++ (no BN recalibration) -- single measurement each
+
+| Soup | Members' Test400 (mean) | **Test400** | Members' Test100 (mean) | Test100 |
+|---|---|---|---|---|
+| **D-soup-h20** (H20 s1+s2) | 92.7, 92.8 (92.8) | **93.1** | 95.1, 95.4 (95.2) | **95.7** |
+| D-soup-l3 (L lr1e-5 s1+s2+s3) | 92.0, 91.5, 92.1 (91.9) | 92.2 | 94.5, 94.4, 94.6 (94.5) | 94.7 |

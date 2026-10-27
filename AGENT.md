@@ -871,3 +871,40 @@ Jobs:
   - layer-wise LR decay
   - stages B and C on the ViT
   - E, which is still gated on unlabelled data
+
+## 2026-10-27 -- Round 9: delete BN-bug outputs; soup the ViTPose seeds (stage A on D)
+
+User: "Yes, delete them and soup the H20 seeds."
+
+**Cleanup.**
+- I listed the targets first, then deleted them by literal path:
+  - `output/vit-{h,l}-lr{1e-5,5e-5}-s1`, on /projects, about 7.6 GB
+  - the matching `log/vit-*`
+- All `vit2-*` runs are untouched.
+
+**Soups.**
+- `scripts/vit_soups.sbatch` (job 11400326, short partition, CPU, 2 min) builds uniform averages
+  of the `final_state.pth` files:
+  - **D-soup-h20**: H20 s1+s2. This was pre-registered as the soup we report.
+  - D-soup-l3: L lr1e-5 s1+s2+s3.
+- No BN recalibration. The ViTPose decoder BN is frozen during fine-tuning, so its stats are
+  already the COCO ones. `weight_average.py` now refuses `--recal-bn` for ViTPose.
+- Scored by eval500-Dsoup-h/l (11400360, 11400382).
+
+| Soup | Test400 | vs members' mean | Test100 | vs members' mean |
+|---|---|---|---|---|
+| **D-soup-h20** | **93.1** | +0.3 | **95.7** | +0.4 |
+| D-soup-l3 | 92.2 | +0.4 | 94.7 | +0.2 |
+
+**Conclusions**
+- Souping helps ViTPose a little: +0.3 to +0.4 Test400, in the same direction for both model
+  sizes.
+  - That is below our 0.5 rule, so it counts as a consistent small gain, not a decisive one.
+  - It is smaller than the +0.9 seen for HRNet. Our reading: HRNet seeds were noisier
+    (std 0.2-0.3, and including the aug-cj variants), so averaging had more variance to remove.
+- **Best single model of the project: `output/soups/D-soup-h20.pth`.**
+  - **Test400 93.1, Test100 95.7.** The released hrnet_fidip scores 90.7 / 93.6, so this is
+    **+2.4 / +2.1**.
+  - It is a pre-registered uniform average of the two H20 seeds, not a pick by test score.
+- **The reported recipe number stays the 2-seed H20 mean: 92.8 ± 0.1 Test400.** The soup is
+  reported alongside it.
