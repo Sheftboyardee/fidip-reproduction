@@ -251,6 +251,10 @@ class SYRIPDataset(JointsDataset):
         elif self.image_set == 'train_pre_infant' or self.image_set == 'train_infant':
             data_name = self.image_set
             file_name = 'train' + '%05d.jpg' % index
+        elif self.image_set == 'heldout_infant':
+            # round 12 cross-validation: held-out labelled real training images (scripts/make_cv_folds.py)
+            data_name = 'train_infant'
+            file_name = 'train' + '%05d.jpg' % index
 
         image_path = os.path.join(
             self.root, 'images', data_name, file_name)
@@ -321,7 +325,7 @@ class SYRIPDataset(JointsDataset):
         for idx, kpt in enumerate(preds):
             if self.image_set == 'validate_infant':
                 _img = int(os.path.basename(img_path[idx])[4:-4])
-            elif self.image_set == 'train_pre_infant' or self.image_set == 'train_infant':
+            elif self.image_set in ('train_pre_infant', 'train_infant', 'heldout_infant'):
                 _img = int(os.path.basename(img_path[idx])[5:-4])
             else:
                 _img = int(img_path[idx][-16:-4])

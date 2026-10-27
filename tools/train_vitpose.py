@@ -5,8 +5,9 @@
 # adversarial term did not help in rounds 1-4) and minus that script's hard-coded
 # "freeze the first 109 parameters", which is HRNet-specific.
 # Differences for ViTs: AdamW (TRAIN.WD), fp16/bf16 autocast, optional layer-wise LR decay
-# (TRAIN.LAYER_DECAY). AUTO_RESUME True saves checkpoint.pth (model + optimiser) every epoch and
-# resumes from it, so long runs (e.g. 384x288 ViTPose++-H) can be split into chained short jobs.
+# (TRAIN.LAYER_DECAY), optional ranking loss (LOSS.TYPE rspose, round 12). AUTO_RESUME True saves
+# checkpoint.pth (model + optimiser) every epoch and resumes from it, so long runs (e.g. 384x288
+# ViTPose++-H) can be split into chained short jobs.
 # Usage: python tools/train_vitpose.py --cfg experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml \
 #            MODEL.HF_NAME usyd-community/vitpose-plus-large TRAIN.LR 5e-5 OUTPUT_DIR output/vit-l
 # ------------------------------------------------------------------------------
@@ -26,6 +27,7 @@ import _init_paths  # noqa: F401
 from config import cfg
 from config import update_config
 from core.loss import JointsMSELoss
+from core.rank_loss import RSPoseLoss
 from core.function import AverageMeter
 from core.function import validate_adaptive
 from utils.utils import create_logger
@@ -84,6 +86,8 @@ def main():
     model_p = torch.nn.DataParallel(model_p, device_ids=cfg.GPUS).cuda()
 
     criterion_p = JointsMSELoss(use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT).cuda()
+    # validation always reports the MSE loss; training may use the round 12 ranking loss instead
+    train_criterion = RSPoseLoss(c_inst=cfg.LOSS.RS_INST) if cfg.LOSS.TYPE == 'rspose' else criterion_p
     optimizer = torch.optim.AdamW(
         param_groups(model_p.module, cfg.TRAIN.LR, cfg.TRAIN.WD, cfg.TRAIN.LAYER_DECAY), lr=cfg.TRAIN.LR)
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, cfg.TRAIN.LR_STEP, cfg.TRAIN.LR_FACTOR)
@@ -142,7 +146,7 @@ def main():
             target_weight = target_weight.cuda(non_blocking=True)
             with torch.autocast('cuda', dtype=amp_dtype):
                 _, output = model_p(input.cuda(non_blocking=True))
-            loss = criterion_p(output.float(), target, target_weight)
+            loss = train_criterion(output.float(), target, target_weight)
             optimizer.zero_grad()
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -150,8 +154,9 @@ def main():
             losses.update(loss.item(), input.size(0))
             losses_list.append(loss.item())
             if i % cfg.PRINT_FREQ == 0:
-                logger.info('Epoch: [%d][%d/%d]\tLoss_p %.6f (%.6f)\tlr %.2e', epoch, i,
-                            len(train_loader), losses.val, losses.avg, optimizer.param_groups[-1]['lr'])
+                logger.info('Epoch: [%d][%d/%d]\tLoss_p %.6f (%.6f)\tlr %.2e%s', epoch, i,
+                            len(train_loader), losses.val, losses.avg, optimizer.param_groups[-1]['lr'],
+                            ''.join(f'\t{k} {v:.4f}' for k, v in getattr(train_criterion, 'last', {}).items()))
             writer_dict['writer'].add_scalar('train_loss', loss.item(), writer_dict['train_global_steps'])
             writer_dict['train_global_steps'] += 1
         lr_scheduler.step()

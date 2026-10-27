@@ -52,6 +52,10 @@ _C.LOSS.USE_OHKM = False
 _C.LOSS.TOPK = 8
 _C.LOSS.USE_TARGET_WEIGHT = True
 _C.LOSS.USE_DIFFERENT_JOINTS_WEIGHT = False
+# round 12 experiment 2 (tools/train_vitpose.py): 'mse' (JointsMSELoss) or 'rspose' (lib/core/rank_loss.py,
+# spatial rank + sort; RS_INST > 0 adds the instance-sort term with that weight)
+_C.LOSS.TYPE = 'mse'
+_C.LOSS.RS_INST = 0.0
 
 # DATASET related params
 _C.DATASET = CN()
