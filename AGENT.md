@@ -718,3 +718,45 @@ All 5 jobs completed with no failures.
 - **D2 (fine-tuning ViTPose++ on SyRIP) is a clear go.**
 
 **Storage:** soups 7.7 GB under `output/soups/`; HF cache 6.1 GB. Both are on /projects.
+
+## 2026-10-26 -- Round 8: stage D2, fine-tuning ViTPose++ on SyRIP
+
+D1 cleared the gate (ViTPose++-H zero-shot Test400 90.1), so I built the fine-tuning path.
+- `lib/models/adaptive_pose_vitpose.py` wraps HF `VitPoseForPoseEstimation` in the
+  `adaptive_pose_*` interface. ViTPose++ uses the COCO expert (`dataset_index` 0). This means
+  `test_adaptive_model.py`, `validate_adaptive` and `eval500.sbatch` all work unchanged.
+- `tools/train_vitpose.py`:
+  - **Same as HRNet ft40:** data pipeline, augmentation, balanced real/synthetic sampler,
+    JointsMSELoss, Test100 validation each epoch, and 40 epochs with LR ×0.1 at epoch 30.
+  - **Dropped:** the domain classifier, and the HRNet script's hard-coded freezing of the first
+    109 parameters.
+    - Side finding: that freeze means all our HRNet runs had the stem and stage 1 frozen.
+      PLAN.md C1 (freezing) is therefore partly the existing baseline already.
+  - **Added:** AdamW with WD 0.1 and no decay on norms or biases, fp16/bf16 autocast, and
+    optional `TRAIN.LAYER_DECAY` (off for now).
+- Config `experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml`: 256×192 input,
+  64×48 heatmap, sigma 2, batch 32.
+- **Laptop smoke test** with ViTPose++-B, 1 epoch:
+  - Zero-shot Test100 through the *repo* pipeline is 89.5. The HF pipeline gives 89.8, so the two
+    protocols agree to 0.3.
+  - After 1 epoch: 89.5.
+  - `test_adaptive_model.py` reloads the checkpoint and reproduces 89.5.
+- `.gitignore`: the `models/` rule was also ignoring `lib/models/` for new files. Anchored it to
+  `/models/`.
+
+| Run | Job | Model | LR |
+|---|---|---|---|
+| vit-l-lr5e-5-s1 | 11395200 | ViTPose++-L | 5e-5 |
+| vit-l-lr1e-5-s1 | 11395203 | ViTPose++-L | 1e-5 |
+| vit-h-lr5e-5-s1 | 11395205 | ViTPose++-H | 5e-5 |
+| vit-h-lr1e-5-s1 | 11395206 | ViTPose++-H | 1e-5 |
+| eval500-D2-l / -h | 11395213 / 11395216 | final and best checkpoints | `--dependency=afterany` |
+
+All four runs use `TIME=01:30:00`.
+
+**Compare against:**
+- zero-shot ViTPose++-L 89.4 and ++-H 90.1
+- the soup A1-four-bn at 91.1
+- the released hrnet_fidip at 90.7 (Test400)
+
+The second seed of the best LR comes after these results.

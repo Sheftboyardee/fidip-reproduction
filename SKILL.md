@@ -91,6 +91,27 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
   New switches: `TRAIN.ADV_LOSS {neg_bce,confusion}`, `TRAIN.PRE_BN_FREEZE {False,True}`.
   Give every experiment its own `OUTPUT_DIR output/<exp>` so runs don't auto-resume each other.
 
+- Stage A/D additions (2026-10-26):
+  - `scripts/stageA_soups.sbatch [spec]` builds weight soups with `scripts/weight_average.py`
+    into `output/soups/`. It also writes `output/soups/eval_{raw,bn}.txt` for `eval500.sbatch`.
+  - `scripts/vitpose_setup.sbatch` (short partition) installs transformers 4.53.3 into the venv
+    and downloads `scripts/vitpose_models.txt` into the HF cache
+    `/projects/ML_Small_Data/sheft.n/fidip/hf_cache`. All jobs set `HF_HUB_OFFLINE=1`.
+  - `scripts/vitpose_zeroshot.sbatch` scores zero-shot ViTPose using `tools/test_vitpose.py`.
+  - **ViTPose fine-tuning:** `train.sbatch` with the vitpose cfg runs `tools/train_vitpose.py`:
+    ```
+    C=experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml
+    submit <tag> MODEL.HF_NAME usyd-community/vitpose-plus-{large,huge} TRAIN.LR ...
+    ```
+    Use `TIME=01:30:00`.
+  - **Evaluating ViTPose checkpoints:** pass the same HF_NAME, otherwise the wrong architecture
+    is built and `strict=False` loading silently drops the weights:
+    ```
+    CFG=<vitpose cfg> OPTS="MODEL.HF_NAME <same as training>" sbatch scripts/eval500.sbatch list.txt
+    ```
+  - The HRNet training script freezes the first 109 parameters (stem + stage 1). This is hard-coded
+    upstream; `train_vitpose.py` does not do it.
+
 ## Common operations (cluster)
 
 ```bash
@@ -122,6 +143,8 @@ jobs until resume is fixed.
 | round 4 | 40-epoch ft40-s1/s2, adv40-s1/s2 (+ dependent eval500-04) | 11333089 11333092 11333095 11333110 (+ replacement adv40-s3 11334290, evals 11333148 11334329) | all COMPLETED (adv40-s1 TIMEOUT, excluded) | `output/<tag>` |
 | round 5 | aug-cj-s2/s3, aug-geo-s1/s2, aug-light-s1/s2, mob-ft, mob-fidip (+ evals 11388501 11389154 11389155) | 11386778 11387264 11386746 11386785 11386757 11386795 11386820 11386845 | all COMPLETED (aug-cj-s1 11386742 cancelled on T4) | `output/<tag>` |
 | round 6 | mob-ft120-s1/s2, mob-ft200-s1/s2 (+ eval 11389519) | 11389498 11389506 11389505 11389508 | all COMPLETED | `output/<tag>` |
+| round 7 (stage A + D1) | vitpose-setup, soups, vitpose-zs, eval500-A-raw/bn | 11394626 11394628 11394634 11394636 11394637 | all COMPLETED | `output/soups/`, `eval500/vitpose/` |
+| round 8 (stage D2) | vit-{l,h}-lr{5e-5,1e-5}-s1 (+ eval500-D2-l/h 11395213 11395216) | 11395200 11395203 11395205 11395206 | submitted 2026-10-26 | `output/<tag>` |
 
 ## Guardrails
 
