@@ -44,6 +44,8 @@ _C.MODEL.IMAGE_SIZE = [256, 256]  # width * height, ex: 192 * 256
 _C.MODEL.HEATMAP_SIZE = [64, 64]  # width * height, ex: 24 * 32
 _C.MODEL.SIGMA = 2
 _C.MODEL.EXTRA = CN(new_allowed=True)
+# HF transformers ViTPose checkpoint for MODEL.NAME adaptive_pose_vitpose (PLAN.md stage D)
+_C.MODEL.HF_NAME = ''
 
 _C.LOSS = CN()
 _C.LOSS.USE_OHKM = False
@@ -98,6 +100,8 @@ _C.TRAIN.ADV_LOSS = 'neg_bce'
 # Keep the pose net in eval mode during domain-classifier pre-training so its BatchNorm running
 # stats are not updated on train_pre_infant (adult) images. Original code: False.
 _C.TRAIN.PRE_BN_FREEZE = False
+# Layer-wise LR decay for ViT backbones (tools/train_vitpose.py): block i of N gets LR * DECAY**(N-i). 1.0 = off.
+_C.TRAIN.LAYER_DECAY = 1.0
 
 _C.TRAIN.RESUME = False
 _C.TRAIN.CHECKPOINT = ''

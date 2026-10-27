@@ -17,8 +17,11 @@ set -euo pipefail
 CFG=${1:?cfg yaml required}; shift
 cd ~/Infant-Pose-Estimation
 PY=~/venvs/fidip/bin/python
+# ViTPose checkpoints (stage D) are pre-downloaded here by scripts/vitpose_setup.sbatch
+export HF_HOME=/projects/ML_Small_Data/sheft.n/fidip/hf_cache HF_HUB_OFFLINE=1
 case "$CFG" in
   *mobile*) SCRIPT=tools/train_adaptive_model_mobile.py; DEFAULT_INIT="" ;;  # no COCO MobileNet ckpt yet
+  *vitpose*) SCRIPT=tools/train_vitpose.py; DEFAULT_INIT="" ;;  # weights come from MODEL.HF_NAME
   *)        SCRIPT=tools/train_adaptive_model_hrnet.py; DEFAULT_INIT="models/coco/w48_384×288.pth" ;;
 esac
 INIT=${INIT-$DEFAULT_INIT}   # override: INIT=path sbatch ...   (INIT= to start from scratch)

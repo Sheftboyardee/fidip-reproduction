@@ -54,7 +54,7 @@ Thumbs.db
 .env
 # data / weights / run outputs (tracked in MANIFEST.md instead)
 data/
-models/
+/models/
 output/
 log/
 *.pth
