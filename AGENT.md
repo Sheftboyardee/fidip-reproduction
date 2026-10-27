@@ -1072,3 +1072,109 @@ The best results remain:
 - the D-soup-h20 seed soup, 93.1 / 95.7 (output/soups/D-soup-h20.pth)
 
 The only untested lever in PLAN.md is stage E (unlabelled real infant images).
+
+## 2026-10-27 -- Round 12: the user's improvement plan before acquiring new video
+
+**Asked:** "Parse through the attached plan .md. Proceed with the plan as documented there"
+(`draft_plan_fidip.md`, now summarised with the pre-registration in PLAN.md "Round 12").
+Experiments, in the plan's order:
+- 0: evaluation/pipeline audit
+- 1: training-label audit
+- 2: ranking loss
+- 3: mean teacher on the existing unannotated images
+- 4: Sapiens2 screen
+
+### Experiment 0: evaluation and pipeline audit (done)
+
+**Provenance / overlap** (`scripts/audit_overlap.py`, laptop, 8 min). It compares the 200 labelled real
+training images, the 300 unannotated images in `images/train_infant` and Test500 by:
+- YouTube video id
+- 64-bit DCT perceptual hash (distance ≤ 10)
+- ORB + RANSAC homography inliers (≥ 40)
+
+Checked visually: hash-0 pairs are the same frame, and 40-60 inlier pairs are other frames of the same video.
+
+| Finding | Count |
+|---|---|
+| Train YouTube videos that also supply test images | 23 of 25 |
+| Test400 images with a direct link (video/hash/scene) to a labelled training image | 147 (Test400_indep = 253) |
+| Test100 images with such a link | 58 |
+| Near-identical train/test pairs (hash ≤ 4) | 6 (e.g. train00315/test42, train00340/test50) |
+| Unannotated images that are near-exact copies of a Test500 image | 204 of 300 |
+| Unannotated images sharing a source with any test image | 245 of 300 |
+| Unannotated images with no link to test or labelled images (eligible) | **52** |
+
+This leakage is in the original SyRIP split. Every number reported so far is affected the same way.
+New reporting: Test400_indep alongside Test400.
+
+**Retrospective bootstrap** (`scripts/bootstrap_ap.py`): paired, resampling source groups,
+2000 resamples, recomputing AP each time. File: `output/audit12/bootstrap_retro.csv`.
+
+| Comparison (B − A) | Test400 | Test400_indep | Test100 |
+|---|---|---|---|
+| H20-s1 − released | +2.0 [+1.2, +3.0] | +2.4 [+1.2, +3.3] | +1.5 [+0.1, +3.0] |
+| D-soup-h20 − released | +2.4 [+1.5, +3.2] | +2.7 [+1.4, +3.5] | +2.0 [+0.7, +3.3] |
+| D-soup-h20 − H20-s1 | +0.4 [+0.0, +0.5] | +0.3 [+0.0, +0.5] | +0.6 [+0.0, +1.1] |
+| H20-s2 − H20-s1 (seed noise) | +0.1 [−0.4, +0.5] | +0.0 [−0.3, +0.2] | +0.3 [−0.5, +1.1] |
+| b-rf100-s2 − H20-s2 (real only) | +0.0 [−0.8, +0.7] | +0.3 [−0.4, +1.0] | −1.0 [−2.5, −0.1] |
+| d3-h384 − H20-s1 | −0.0 [−0.8, +0.7] | −0.3 [−0.9, +0.4] | −0.1 [−0.8, +0.7] |
+| c2-ld90 − H20-s1 | −0.0 [−0.5, +0.5] | +0.4 [−0.2, +0.7] | −0.4 [−1.1, +0.4] |
+
+- The ViTPose gain over FiDIP holds on the train-independent subset.
+- The soup gain is small but its CI excludes 0.
+- Seed-to-seed CIs are about ±0.4, so the +0.5 rule is about one evaluation-noise width.
+
+**Pipeline parity** (`tools/parity_vitpose.py`, zero-shot ++-B, laptop):
+- Encode→decode round trip: repo 0.008 px, HF 0.0001 px. Repo targets decoded by HF post-processing: 1.45 px.
+- The repo centres the box at x+(w−1)/2; HF centres it at x+w/2.
+- DARK blur: cv2 11×11 (σ≈2) in the repo vs σ=0.8 in HF.
+
+| crop + refinement | Test400 | Test100 |
+|---|---|---|
+| repo + repo (our eval) | 87.82 | 89.50 |
+| repo + HF | 87.45 | 89.95 |
+| HF + HF (tools/test_vitpose.py) | 87.47 | 89.79 |
+| HF + repo | 87.64 | 89.25 |
+
+±0.3-0.4 AP with no consistent winner. There is no bug, but decoder choices alone move AP by our
+decision-threshold size. Decoder frozen.
+
+**Validation for method selection:** 5 grouped folds over the 200 labelled real images
+(`scripts/make_cv_folds.py`, groups from direct train-train links, 124 groups, 40 images per fold).
+`data/syrip_cv/f<k>/` (gitignored) holds the fold jsons; test set `heldout_infant`
+(`lib/dataset/syrip.py`). Metric: pooled OOF AP of final-epoch checkpoints.
+
+### Implemented for experiments 1-4
+
+- `lib/core/rank_loss.py`: RSPose-style S-Rank + S-Sort (+ I-Sort), `LOSS.TYPE rspose`.
+  - No official code exists, so this is our implementation from the paper's equations, with AP-Loss/RS-Loss identity-update gradients.
+  - The vectorised gradients match a loop port of Oksuz et al.'s RankSort to 1e-9.
+  - Positives are pixels with target > e^-4.5 (our targets are untruncated Gaussians).
+- `lib/dataset/unlabeled.py` + `TRAIN.MT_*`: mean teacher.
+  - Weak crop goes to the flip-averaged EMA teacher; peaks above the threshold become Gaussian targets in the strong (scale/rot/flip/colour) view.
+  - Unit test: the pseudo-target peak lands within 0.61 heatmap px of the analytically transformed point over 40 random augmentations, 16 of them flipped (left/right swapped).
+  - `tools/estimate_boxes.py` gives the unannotated images person boxes (2-pass zero-shot ++-H).
+- `tools/label_audit.py`: flags swap / far / visibility / outside-box joints from OOF predictions plus a zero-shot second opinion.
+  - Adds 20 random unflagged images.
+  - Writes a **local** review page (`output/audit12/labels/review.html`, SyRIP images, never published) that exports decisions.json.
+- `scripts/sapiens2_setup.sbatch`: separate venv `~/venvs/sapiens2` (torch 2.7.1 cu126, transformers 5.x) and the 0.4B/1B checkpoints.
+  - Sapiens2 is on HF ungated (`facebook/sapiens2-pose-*`, `Sapiens2ForPoseEstimation`, input 1024x768, 308 Goliath keypoints).
+
+**Laptop smoke tests** (++-B, fold 0, 40 held-out images, batch 16):
+
+| Run | ep0 | ep1 | Notes |
+|---|---|---|---|
+| zero-shot | 88.3 | | |
+| MSE | 88.9 | 89.7 | |
+| RS spatial | 87.9 | 89.6 | |
+| RS + I-Sort | 86.4 | | 1 epoch only |
+| mean teacher (labelled pool only) | 88.0 | | 92% of pseudo-joints accepted, ~1.7x step time |
+
+### Submitted
+
+| Tag | Job | What |
+|---|---|---|
+| cv-h20-f0..f4 | 11422061 11422072 11422076 11422081 11422084 | baseline H20, folds 0-4 (TIME 1:45) |
+| cv-rs-f0, f1 | 11422319 11422326 | E2 spatial RS, folds 0-1 (f2-f4 when slots free) |
+| sapiens2-setup | 11422150 | venv + checkpoints (short partition) |
+| r12-prep | (after setup) | boxes for the 52 eligible images; zero-shot ++-H on 200R |
