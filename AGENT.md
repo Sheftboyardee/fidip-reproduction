@@ -760,3 +760,41 @@ All four runs use `TIME=01:30:00`.
 - the released hrnet_fidip at 90.7 (Test400)
 
 The second seed of the best LR comes after these results.
+
+### Round 8, first attempt: BatchNorm bug. Cancelled with user approval.
+
+**What went wrong.**
+- In the first runs (11395200/03/05/06), Test100 *collapsed* after the first epochs:
+  - ViTPose++-L at LR 5e-5 went 92.1 at the start → 2.9 (epoch 1) → 24.5 (epoch 2).
+  - At LR 1e-5 it fell 92.1 → 80.9 after epoch 0.
+- **Diagnosis (laptop):** the ViTPose++ "classic" decoder has two BatchNorm layers
+  (`head.batchnorm1/2`). In `train()` mode they use per-batch statistics. On our small,
+  augmented infant batches that roughly doubled the heatmap amplitude (peak 0.84 → 1.97) and
+  multiplied the loss by about 100 on the *same* input. Every step then pushed the weights the
+  wrong way.
+  - There is no dropout or drop-path in the HF config, so BN was the only train/eval difference.
+- **Fix:** `ViTPoseNet.train()` keeps all BN modules in eval mode, so they stay on their COCO
+  running stats.
+  - Laptop check: train-mode and eval-mode losses are now identical.
+  - ViTPose++-B goes 89.5 → **92.2 Test100 after one epoch**.
+- **Lesson:** a model ported for inference can carry BN layers whose batch statistics are
+  inappropriate for small-batch fine-tuning. Check train-mode vs eval-mode loss on one batch
+  before launching.
+
+**Job handling.**
+- The user approved cancelling all 6 jobs: 4 training runs and their 2 evals.
+- The runs were resubmitted under new tags `vit2-*`:
+
+| Run | Job |
+|---|---|
+| vit2-l-lr5e-5-s1 | 11395455 |
+| vit2-h-lr5e-5-s1 | 11395479 |
+| vit2-l-lr1e-5-s1 | 11395499 |
+| vit2-h-lr1e-5-s1 | 11395504 |
+| eval500-D2b-l | 11395527 |
+| eval500-D2b-h | 11395547 |
+
+- **Duplicate eval:** the D2b-h eval first reported "Unexpected message received" and was not in
+  squeue after more than 60 s, so I resubmitted it once. The original then appeared as 11395551.
+  The user approved cancelling that duplicate.
+  - Lesson: wait longer than a minute before treating a failed sbatch as not queued.
