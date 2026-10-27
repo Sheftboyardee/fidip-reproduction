@@ -111,6 +111,15 @@ _C.TRAIN.LAYER_DECAY = 1.0
 _C.TRAIN.REAL_FRACTION = -1.0
 # Gradient checkpointing for the ViTPose backbone (tools/train_vitpose.py), to fit large inputs in memory.
 _C.TRAIN.GRAD_CKPT = False
+# round 12 experiment 3 (tools/train_vitpose.py): mean teacher. MT_ITEMS = json of unlabelled crops
+# ({"image", "bbox"}, tools/estimate_boxes.py); MT_WITH_LABELED adds the run's real training images
+# with their labels unused. Off unless one of the two is set.
+_C.TRAIN.MT_ITEMS = ''
+_C.TRAIN.MT_WITH_LABELED = False
+_C.TRAIN.MT_WEIGHT = 1.0
+_C.TRAIN.MT_EMA = 0.999
+_C.TRAIN.MT_THR = 0.5
+_C.TRAIN.MT_BATCH = 16
 
 _C.TRAIN.RESUME = False
 _C.TRAIN.CHECKPOINT = ''

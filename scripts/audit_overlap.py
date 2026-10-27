@@ -174,6 +174,15 @@ def main():
     json.dump({k: sorted(v) for k, v in subsets.items()}, open(os.path.join(args.out, 'test_subsets.json'), 'w'))
     print('test subsets:', {k: len(v) for k, v in sorted(subsets.items())})
 
+    # unlabelled images eligible for semi-supervised training: their whole (transitive) group holds
+    # no test image and no labelled training image
+    sets_of = collections.defaultdict(set)
+    for i in range(n):
+        sets_of[find(i)].add(items[i][1])
+    eligible = [items[i][2] for i in range(n) if items[i][1] == 'extra300' and sets_of[find(i)] == {'extra300'}]
+    json.dump(eligible, open(os.path.join(args.out, 'eligible_unlabeled.json'), 'w'), indent=0)
+    print(f'eligible unlabelled images: {len(eligible)} of {sum(it[1] == "extra300" for it in items)}')
+
 
 if __name__ == '__main__':
     main()
