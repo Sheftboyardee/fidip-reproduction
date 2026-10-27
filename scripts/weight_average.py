@@ -75,6 +75,9 @@ def main():
     update_config(cfg, args)
 
     state = average(args.specs)
+    if args.recal_bn and cfg.MODEL.NAME == 'adaptive_pose_vitpose':
+        # the ViTPose wrapper keeps its BN in eval mode, so recalibration would leave reset stats
+        sys.exit('--recal-bn is not supported for adaptive_pose_vitpose (decoder BN is frozen)')
     if args.recal_bn:
         state = recalibrate_bn(state)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
