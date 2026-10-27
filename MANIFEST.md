@@ -141,6 +141,8 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 
 | 2026-10-27 round10 C2 c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (jobs 11400434/11400442/11400455; eval 11400473) | H20 recipe + `TRAIN.LAYER_DECAY 0.95 / 0.9` (`TRAIN.LR 3e-5` for the last one) | `output/c2-*/syrip/adaptive_pose_vitpose/vitpose_plus_256x192_infant/final_state.pth` | 95.6 / 94.7 / 95.3 | -- | -- | -- | Test400 final 92.7 / 92.7 / 92.9: null |
 | 2026-10-27 round10 B b-rf{17,50,75,100}-s1 (jobs 11400506/11400510/11400521/11400537; eval 11401502) | H20 recipe + `TRAIN.REAL_FRACTION 0.1667 / 0.5 / 0.75 / 1.0` | `output/b-rf*-s1/.../final_state.pth` | 95.6 / 95.7 / 94.9 / 94.7 | -- | -- | -- | Test400 final 92.6 / 93.0 / 92.8 / 92.7: null; real-only = baseline |
+| 2026-10-27 round11 B2 b-rf100-s2 (job 11410487; eval 11410741) | H20 recipe + `TRAIN.REAL_FRACTION 1.0`, second seed | `output/b-rf100-s2/.../final_state.pth` | 94.4 | -- | -- | -- | Test400 final 92.9; real-only 2-seed 92.8 ± 0.1 = baseline |
+| 2026-10-27 round11 D3 d3-h384-lr1e-5-s1 (jobs 11410716/11410725/11410732 chained; eval 11410743) | `vitpose_plus_384x288_infant.yaml`, H20 recipe + `TRAIN.GRAD_CKPT True` | `output/d3-h384-lr1e-5-s1/syrip/adaptive_pose_vitpose/vitpose_plus_384x288_infant/final_state.pth` | 95.0 | -- | -- | -- | Test400 final 92.7 (best 92.8): null |
 
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).

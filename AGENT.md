@@ -1036,3 +1036,39 @@ Evaluated by eval500-B2 (11410741).
 - Jobs: `d3-h384-lr1e-5-s1` 11410716, then -p2 11410725 and -p3 11410732 (each 1:45,
   `afterany`), then eval500-D3 11410743 (384 cfg).
 - Screening rule unchanged: second seed only if Test400 ≥ 93.1 (+0.3).
+
+### Round 11 results (2026-10-27): both null
+
+| Run | Test400 final | Test100 final |
+|---|---|---|
+| baseline H20 256x192 (2 seeds) | 92.7, 92.8 → **92.8 ± 0.1** | 95.1, 95.4 → 95.3 |
+| real only (b-rf100-s1, s2) | 92.7, 92.9 → **92.8 ± 0.1** | 94.7, 94.4 → 94.6 |
+| ViTPose++-H 384x288 (d3-h384, 1 seed) | **92.7** (best ckpt 92.8) | 95.0 (best 95.5, ep 6) |
+
+**B2 confirmed with 2 seeds: synthetic data adds nothing on Test400 for ViTPose++-H.**
+- On Test100 (the paper's set), dropping synthetic data costs 0.7. That is now consistent
+  across both seeds, and slightly above Test100's ±0.5 noise.
+- The effect does not appear on the 4× larger, unbiased Test400. So it is reported as a
+  Test100-only effect, not as a held-out benefit of synthetic data.
+
+**D3, input resolution 384x288: no gain, at about 2.8× the GPU time.**
+- Zero-shot drops at the higher resolution, because of the interpolated position embeddings:
+  Test100 91.3 vs 92.7.
+- Fine-tuning recovers to the baseline level, but not beyond it.
+- Test400 92.7 is below the +0.3 screen, so no second seed.
+- **Ops notes:**
+  - The chained resumable jobs worked as designed. Part 1 timed out after epoch 7, part 2
+    resumed at epoch 8 and timed out during epoch 16, and part 3 finished epochs 16-19.
+  - The 10.8 GB `checkpoint.pth` was deleted at the end.
+  - Peak memory with gradient checkpointing fit a 32 GB V100.
+
+**Conclusion after round 11.** Every recipe-level change on ViTPose++-H lands at Test400 92.6-93.0:
+- layer-wise LR decay (C2)
+- real:synthetic mix (B, B2)
+- input resolution (D3)
+
+The best results remain:
+- the H20 recipe, 92.8 ± 0.1 (Test100 95.2)
+- the D-soup-h20 seed soup, 93.1 / 95.7 (output/soups/D-soup-h20.pth)
+
+The only untested lever in PLAN.md is stage E (unlabelled real infant images).

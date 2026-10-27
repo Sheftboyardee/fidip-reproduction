@@ -89,3 +89,21 @@ Baseline is H20, LR 1e-5, with the original 50/50 unshuffled sampler and no deca
 | B real fraction 0.5 (shuffled control) | 93.0 | 93.0 | 95.7 | 95.9 |
 | B real fraction 0.75 | 92.8 | 93.1 | 94.9 | 95.6 |
 | B real fraction 1.0 (real only, no synthetic) | 92.7 | 93.1 | 94.7 | 95.6 |
+
+### Round 11: B2 confirmation, second seed of real-only training (ViTPose++-H, H20 recipe, REAL_FRACTION 1.0)
+
+| Setup | Seeds | **Test400** (final) | Test100 (final) |
+|---|---|---|---|
+| Baseline H20 (50/50 real:synthetic) | 2 | **92.8 ± 0.1** (92.7, 92.8) | 95.3 ± 0.2 (95.1, 95.4) |
+| Real only (no synthetic) | 2 | **92.8 ± 0.1** (92.7, 92.9) | 94.6 ± 0.2 (94.7, 94.4) |
+
+Test400: no difference, so synthetic data adds nothing measurable on held-out infants. Test100: −0.7 without synthetic, consistent across both seeds but absent on Test400.
+
+### Round 11: D3, ViTPose++-H at 384x288 (H20 recipe, gradient checkpointing, 3 chained jobs) -- single seed (screen)
+
+| Setup | **Test400** (final) | Test400 (best) | Test100 (final) | Test100 (best, ep 6) |
+|---|---|---|---|---|
+| Baseline H20 at 256x192 (2 seeds) | **92.8 ± 0.1** | 92.8 | 95.3 | -- |
+| ViTPose++-H at 384x288 | **92.7** | 92.8 | 95.0 | 95.5 |
+
+Zero-shot at 384x288 (interpolated position embeddings): Test100 91.3 vs 92.7 at 256x192. Null: below the +0.3 screen, so no second seed. It costs about 2.8x the GPU time.
