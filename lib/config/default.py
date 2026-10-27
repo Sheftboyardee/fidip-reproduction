@@ -105,6 +105,8 @@ _C.TRAIN.LAYER_DECAY = 1.0
 # Share of real images per epoch for tools/train_vitpose.py (utils.sampler.MixSampler, shuffled).
 # < 0 = original BalancedBatchSampler (50/50, fixed order).
 _C.TRAIN.REAL_FRACTION = -1.0
+# Gradient checkpointing for the ViTPose backbone (tools/train_vitpose.py), to fit large inputs in memory.
+_C.TRAIN.GRAD_CKPT = False
 
 _C.TRAIN.RESUME = False
 _C.TRAIN.CHECKPOINT = ''

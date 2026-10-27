@@ -5,7 +5,8 @@
 # adversarial term did not help in rounds 1-4) and minus that script's hard-coded
 # "freeze the first 109 parameters", which is HRNet-specific.
 # Differences for ViTs: AdamW (TRAIN.WD), fp16/bf16 autocast, optional layer-wise LR decay
-# (TRAIN.LAYER_DECAY), model-only checkpoints (no resume; runs are short).
+# (TRAIN.LAYER_DECAY). AUTO_RESUME True saves checkpoint.pth (model + optimiser) every epoch and
+# resumes from it, so long runs (e.g. 384x288 ViTPose++-H) can be split into chained short jobs.
 # Usage: python tools/train_vitpose.py --cfg experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml \
 #            MODEL.HF_NAME usyd-community/vitpose-plus-large TRAIN.LR 5e-5 OUTPUT_DIR output/vit-l
 # ------------------------------------------------------------------------------
@@ -78,6 +79,8 @@ def main():
                  final_output_dir)
     logger.info('=> %s: %.1fM params', cfg.MODEL.HF_NAME,
                 sum(p.numel() for p in model_p.parameters()) / 1e6)
+    if cfg.TRAIN.GRAD_CKPT:
+        model_p.vitpose.gradient_checkpointing_enable()
     model_p = torch.nn.DataParallel(model_p, device_ids=cfg.GPUS).cuda()
 
     criterion_p = JointsMSELoss(use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT).cuda()
@@ -108,13 +111,30 @@ def main():
     writer_dict = {'writer': SummaryWriter(log_dir=tb_log_dir),
                    'train_global_steps': 0, 'valid_global_steps': 0}
 
-    # zero-shot Test100 through this repo's pipeline, to compare with tools/test_vitpose.py
-    perf = validate_adaptive(cfg, valid_loader, valid_dataset, model_p, criterion_p,
-                             final_output_dir, tb_log_dir, writer_dict)
-    logger.info('=> zero-shot Test100 AP (repo pipeline): %.4f', perf)
+    best_perf, losses_list, begin_epoch = 0.0, [], cfg.TRAIN.BEGIN_EPOCH
+    ckpt_file = os.path.join(final_output_dir, 'checkpoint.pth')
+    if cfg.AUTO_RESUME and not os.path.exists(ckpt_file) and \
+            os.path.exists(os.path.join(final_output_dir, 'final_state.pth')):
+        # a spare chained job starting after the run finished must not train from scratch
+        logger.info('=> %s already has final_state.pth -- nothing to do', final_output_dir)
+        return
+    if cfg.AUTO_RESUME and os.path.exists(ckpt_file):
+        ckpt = torch.load(ckpt_file, map_location='cpu')
+        model_p.module.load_state_dict(ckpt['state_dict'])
+        optimizer.load_state_dict(ckpt['optimizer'])
+        lr_scheduler.load_state_dict(ckpt['lr_scheduler'])
+        scaler.load_state_dict(ckpt['scaler'])
+        best_perf, losses_list, begin_epoch = ckpt['best_perf'], ckpt['losses'], ckpt['epoch']
+        writer_dict['train_global_steps'] = len(losses_list)
+        logger.info('=> resumed from %s at epoch %d (best Test100 AP %.4f)', ckpt_file, begin_epoch, best_perf)
+        del ckpt
+    else:
+        # zero-shot Test100 through this repo's pipeline, to compare with tools/test_vitpose.py
+        perf = validate_adaptive(cfg, valid_loader, valid_dataset, model_p, criterion_p,
+                                 final_output_dir, tb_log_dir, writer_dict)
+        logger.info('=> zero-shot Test100 AP (repo pipeline): %.4f', perf)
 
-    best_perf, losses_list = 0.0, []
-    for epoch in range(cfg.TRAIN.BEGIN_EPOCH, cfg.TRAIN.END_EPOCH):
+    for epoch in range(begin_epoch, cfg.TRAIN.END_EPOCH):
         model_p.train()
         losses = AverageMeter()
         for i, (input, target, target_weight, meta) in enumerate(train_loader):
@@ -142,10 +162,18 @@ def main():
             best_perf = perf
             torch.save(model_p.module.state_dict(), os.path.join(final_output_dir, 'model_best.pth'))
             logger.info('=> new best Test100 AP %.4f at epoch %d', perf, epoch)
+        if cfg.AUTO_RESUME:
+            torch.save({'epoch': epoch + 1, 'state_dict': model_p.module.state_dict(),
+                        'optimizer': optimizer.state_dict(), 'lr_scheduler': lr_scheduler.state_dict(),
+                        'scaler': scaler.state_dict(), 'best_perf': best_perf, 'losses': losses_list},
+                       ckpt_file + '.tmp')
+            os.replace(ckpt_file + '.tmp', ckpt_file)  # a job killed mid-save keeps the previous one
 
     torch.save(model_p.module.state_dict(), os.path.join(final_output_dir, 'final_state.pth'))
     np.save(os.path.join(final_output_dir, 'losses_P.npy'), np.array(losses_list))
     writer_dict['writer'].close()
+    if os.path.exists(ckpt_file):
+        os.remove(ckpt_file)  # ~7.5 GB for ViTPose++-H; final_state.pth + model_best.pth are kept
     logger.info('=> saved final_state.pth; best Test100 AP %.4f', best_perf)
 
 
