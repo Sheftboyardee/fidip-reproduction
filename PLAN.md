@@ -182,3 +182,64 @@ Candidate next steps on the new baseline, cheapest first:
 - ~~**B:** real-image oversampling~~ (null; synthetic data adds nothing for ViTPose++-H).
 - ~~**384x288 input**~~ (null).
 - **E:** mean-teacher, once unlabelled infant images are available.
+
+## Round 12 (2026-10-27): improvement plan before acquiring new infant video
+
+Adopted from the user's draft plan (`draft_plan_fidip.md`, literature search 2026-10-27). Its
+conclusion: the completed sweeps show a plateau for the tested ViTPose++-H recipe, not a ceiling
+for the existing data. Before acquiring video, run a bounded round on annotation quality,
+alternative supervision, the unannotated images we already have, and a newer pretrained model.
+
+| Priority | Experiment | Main question | Initial scope |
+|---|---|---|---|
+| 0 | Evaluation and pipeline audit | Can the next difference be interpreted reliably? | splits, decoding, metrics, provenance |
+| 1 | Training-label audit | Are unreliable annotations limiting learning? | all 200 real training images, human-adjudicated |
+| 2 | Ranking loss (RSPose, Keles et al. 2025) | Does MSE leave localisation/ranking information unused? | MSE vs spatial rank+sort; instance-sort as ablation |
+| 3 | Mean teacher on existing unannotated images | Can the 300 unannotated images help? | simple EMA teacher, pseudo-label threshold |
+| 4 | Sapiens2 pose (2026) | Is a newer pretrained representation stronger or complementary? | zero-shot screen of 0.4B / 1B |
+
+Deprioritised (practical decisions, not proofs): more adversarial FiDIP sweeps, small real:synthetic
+changes, more LLRD settings, repeating interpolated 384x288, ImageNet-init MobileNet.
+
+### Experiment 0 findings that change the protocol
+
+- **Train/test source overlap in the original SyRIP split.** 23 of the 25 YouTube videos behind
+  training images also supply test images. By video id, perceptual hash or ORB scene matching
+  (`scripts/audit_overlap.py`), 147 of the Test400 images and 58 of the Test100 images share a source with a
+  labelled training image; a few test images (e.g. test20/42/46/50) are near-identical to training images.
+  -> Report **Test400_indep** (253 images with no direct link to a labelled training image) beside Test400.
+- **The "300 unannotated images" are mostly test material.** 204 are near-exact copies of Test500
+  images and 245 share a source with a test image; only **52** have no link to any test or labelled image.
+  Training on the others would be transductive and is excluded from the main protocol.
+- **Test400 is now a development benchmark.** It was used to choose methods in rounds 8-11.
+  Method selection now uses grouped cross-validation on the 200 labelled real images instead.
+- **Pipeline parity** (`tools/parity_vitpose.py`, zero-shot ++-B): the repo pipeline is internally
+  consistent (encode/decode round trip 0.008 px); mixing its targets with HF decoding costs 1.45 px.
+  Swapping crop or peak refinement between repo and HF moves AP by ±0.3-0.4 with no consistent
+  winner, the same size as our +0.5 decision rule. **The decoder is frozen (repo pipeline) for all comparisons.**
+
+### Pre-registered protocol (written before any round 12 training result)
+
+- **Validation (method selection):** 5 grouped folds of the 200 labelled real images
+  (`scripts/make_cv_folds.py`; images linked by video/hash/scene stay together; 40 per fold).
+  Each fold trains on the other 160 real images + the 1000 synthetic images with the H20 recipe
+  (ViTPose++-H, LR 1e-5, 20 epochs, step at 15). Metric: **pooled out-of-fold AP over all 200
+  images, final-epoch checkpoints** (area = bbox w*h), plus the per-fold differences.
+- **Advance rule:** pooled OOF AP >= baseline + 0.5 **and** better in >= 4 of 5 folds.
+- **Frozen confirmation (only for candidates that advance):** train on all data, 2 seeds,
+  final checkpoints. Report Test400, Test400_indep and Test100, plus a paired source-group bootstrap 95% CI
+  (`scripts/bootstrap_ap.py`) against the H20 seeds. Report soups separately against D-soup-h20 (93.1).
+- **Candidates and settings, fixed in advance:**
+  - E2: `LOSS.TYPE rspose`, paper's ViTPose-H row (S-Rank δ 0.4 c 1.0, S-Sort δ 1.5 c 2.0); E2b adds I-Sort (δ 3.0, c 1.5).
+  - E3: mean teacher, pool = the 52 eligible unannotated images (boxes from zero-shot ++-H,
+    `tools/estimate_boxes.py`) + the fold's labelled real images with labels unused. EMA 0.999,
+    threshold 0.5 on the flip-averaged teacher peak, weight 1, 16 crops per step. Student final checkpoint is
+    the primary model; the EMA teacher is secondary.
+    With only 52 new images this is mainly a consistency-regularisation test (the plan's
+    weaker-evidence variant). The result must not be read as evidence about unlabelled data in general.
+  - E1: unchanged recipe on human-adjudicated corrected labels (corrections recorded with reasons).
+  - E4: Sapiens2 zero-shot on all 200 labelled real images (clean for a model never trained on them) and on Test500.
+    COCO-17 from Goliath-308 indices [0,1,2,3,4,5,6,7,8,62,41,9,10,11,12,13,14], checked with overlays.
+- **Budget:** the plan's 8-12-run cap is revised after the smoke tests, because clean validation
+  needs 5 fold runs per screen. Planned: baseline CV + E2 + E3 (+ E2b, E1 if warranted) = 15-25 fold
+  runs of ~1.5 GPU-h, plus <= 4 confirmation runs. No hyperparameter sweeps inside a screen.
