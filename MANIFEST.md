@@ -131,6 +131,14 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-26 round7 stage A soups (job 11394628; eval 11394636/11394637) | `scripts/weight_average.py` over `scripts/stageA_soups.txt` (32 soups) | `output/soups/<tag>.pth` (7.7 GB on /projects) | see `results/eval500_summary.md` | -- | -- | -- | **A1-four-bn** (uniform ft40-s1/s2 + aug-cj-s2/s3, BN recal) md5 f0f0e80ffa0416b0c4ca438c23e17cca: Test400 91.1, Test100 92.9 |
 | 2026-10-26 round7 stage D1 ViTPose zero-shot (job 11394634) | `tools/test_vitpose.py`, models in `scripts/vitpose_models.txt` | HF cache `/projects/ML_Small_Data/sheft.n/fidip/hf_cache` (6.1 GB); predictions `eval500/vitpose/zs-*.json` | ViTPose++-H 92.7 | -- | -- | -- | Test400: ViTPose++-H 90.1, ++-L 89.4, ++-B 87.5; COCO HRNet-W48 zero-shot 86.7 |
 
+| 2026-10-26 round8 vit-* (BN bug; jobs 11395200/03/05/06) | `experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml` | `output/vit-*` | -- | -- | -- | -- | CANCELLED: decoder BN in train mode collapsed AP. Outputs are invalid; delete. |
+| 2026-10-26 round8b vit2-l-lr1e-5-s1 (job 11395499) | vitpose cfg + `MODEL.HF_NAME usyd-community/vitpose-plus-large TRAIN.LR 1e-5` | `output/vit2-l-lr1e-5-s1/syrip/adaptive_pose_vitpose/vitpose_plus_256x192_infant/final_state.pth` (md5 0db210dd2432e9ebe63eed8205ce54bf) | 94.5 | -- | -- | -- | Test400 final 92.0 |
+| 2026-10-26 round8c vit2-l-lr1e-5-s2/s3 (jobs 11398128/11398145) | same | `output/vit2-l-lr1e-5-s{2,3}/.../final_state.pth` | 94.4 / 94.6 | -- | -- | -- | Test400 final 91.5 / 92.1 |
+| 2026-10-26 round8b vit2-l-lr5e-5-s1 (job 11395455) | vitpose cfg + plus-large, `TRAIN.LR 5e-5` | `output/vit2-l-lr5e-5-s1/.../final_state.pth` | 93.1 | -- | -- | -- | Test400 final 90.5 (overfits) |
+| 2026-10-26 round8b vit2-h-lr{5e-5,1e-5}-s1 (jobs 11395479/11395504) | vitpose cfg + plus-huge, 40 ep | `output/vit2-h-lr*-s1/.../model_best.pth` | best 95.0 / 95.7 | -- | -- | -- | TIMEOUT at ep 24. Test400 of best ckpt 92.6 / 92.7. |
+| 2026-10-27 round8d **vit2-h20-lr1e-5-s1** (job 11398580) | vitpose cfg + `MODEL.HF_NAME usyd-community/vitpose-plus-huge TRAIN.LR 1e-5 TRAIN.END_EPOCH 20 TRAIN.LR_STEP [15]` | `output/vit2-h20-lr1e-5-s1/syrip/adaptive_pose_vitpose/vitpose_plus_256x192_infant/final_state.pth` (md5 44481f435c577c67720f393e4ef98bb0, 3.6 GB) | 95.1 | 98.3 | 98.3 | 96.3 | **Test400 final 92.7** |
+| 2026-10-27 round8d **vit2-h20-lr1e-5-s2** (job 11398625) | same | `output/vit2-h20-lr1e-5-s2/.../final_state.pth` (md5 cefdd05b06a05d72021d35fee428ddba) | 95.4 | 98.4 | 98.4 | 96.5 | **Test400 final 92.8** |
+
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).
 - Best model we trained: `ft40-s1` (job 11333089), `output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth` on Explorer: Test400 90.3, Test100 92.4 (final epoch). Recipe mean over 2 seeds: Test400 90.2 ± 0.2.
@@ -140,3 +148,26 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 `output/soups/A1-four-bn.pth` (md5 f0f0e80ffa0416b0c4ca438c23e17cca; built by job 11394628 from
 ft40-s1, ft40-s2, aug-cj-s2, aug-cj-s3 with BN recalibration): **Test400 91.1, Test100 92.9**
 (released hrnet_fidip: 90.7 / 93.6).
+
+**Update 2026-10-27 (round 8): final best configuration.**
+
+ViTPose++-H (HF `usyd-community/vitpose-plus-huge`, COCO expert) fine-tuned on SyRIP train_infant.
+
+To reproduce:
+1. Run `scripts/vitpose_setup.sbatch`.
+2. Train, with `TIME=01:45:00`:
+   ```
+   sbatch scripts/train.sbatch experiments/syrip/vitpose/vitpose_plus_256x192_infant.yaml \
+       MODEL.HF_NAME usyd-community/vitpose-plus-huge TRAIN.LR 1e-5 TRAIN.END_EPOCH 20 \
+       TRAIN.LR_STEP [15] OUTPUT_DIR output/<tag>
+   ```
+3. Score with:
+   ```
+   CFG=<same cfg> OPTS="MODEL.HF_NAME usyd-community/vitpose-plus-huge" sbatch scripts/eval500.sbatch <list>
+   ```
+
+Results, 2 seeds, final checkpoints:
+- **Test400 92.8 ± 0.1** (vs 90.7 for the released hrnet_fidip)
+- **Test100 95.2 ± 0.2** (vs 93.6)
+
+Checkpoints: `vit2-h20-lr1e-5-s1` and `-s2` (rows above). Per-checkpoint scores are in `results/eval500.csv`.

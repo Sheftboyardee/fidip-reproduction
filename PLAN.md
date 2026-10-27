@@ -161,3 +161,18 @@ style) helps. First do a cheap check: per-keypoint loss trajectories from an exi
 - Huang et al., SSPCM (CVPR 2023): https://arxiv.org/abs/2303.04346
 - Wortsman et al., WiSE-FT: https://arxiv.org/abs/2109.01903; Model soups: https://arxiv.org/abs/2203.05482
 - REMIND, *The Blind Spot in 2D Infants' Pose Estimation* (2026): https://arxiv.org/abs/2609.04009
+
+## Status (updated 2026-10-27)
+
+| Stage | Status | Result (Test400) |
+|---|---|---|
+| A: soups / WiSE-FT | done (round 7) | Uniform 4-seed HRNet soup 91.1. That is +0.9 over its members but only +0.4 over released; WiSE-FT gives no gain. |
+| D1: ViTPose zero-shot | done (round 7) | ++-H 90.1 with no infant training; COCO HRNet zero-shot 86.7 |
+| **D2: ViTPose fine-tune** | **done (round 8)** | **++-H LR 1e-5 20 ep: 92.8 ± 0.1 (Test100 95.2), +2.1 over released FiDIP**; ++-L: 91.9 ± 0.3 |
+| B, C, E, F | not started | Re-scope onto ViTPose++-H, the new baseline. |
+
+Candidate next steps on the new baseline, cheapest first:
+- **A on D:** soup the two H20 seeds. Evaluation only.
+- **C2:** layer-wise LR decay.
+- **B:** real-image oversampling.
+- **E:** mean-teacher, once unlabelled infant images are available.

@@ -830,3 +830,44 @@ The second seed of the best LR comes after these results.
 
 - Evals: eval500-D2c-l (11398156) and eval500-D2d-h (11398679).
 - vit2-l-lr1e-5-s3 reported "Unexpected message" but did queue.
+
+### Round 8 final results (2026-10-27): stage D2 complete
+
+| Recipe | n | **Test400 final** | Test100 final | Δ vs released hrnet_fidip (Test400 / Test100) |
+|---|---|---|---|---|
+| **ViTPose++-H, LR 1e-5, 20 ep** | 2 | **92.8 ± 0.1** (92.7, 92.8) | **95.2 ± 0.2** | **+2.1 / +1.6** |
+| ViTPose++-L, LR 1e-5, 40 ep | 3 | 91.9 ± 0.3 (92.0, 91.5, 92.1) | 94.5 ± 0.1 | +1.2 / +0.9 |
+| HRNet soup A1-four-bn (round 7) | 1 | 91.1 | 92.9 | +0.4 / −0.7 |
+| HRNet ft40 (our best trained, round 4) | 2 | 90.2 ± 0.2 | ~92.0 | −0.5 / −1.6 |
+| released hrnet_fidip | 1 | 90.7 | 93.6 | -- |
+
+Jobs:
+- L seeds 2 and 3: 11398128 and 11398145, evaluated by 11398156.
+- H20 seeds: 11398580 and 11398625, evaluated by 11398679.
+- All completed within their time limits.
+  - The H20 runs took about 80 min each.
+  - The L seeds took about 90 min. They shared node d1002, which made them slower than s1.
+
+**Conclusions**
+- **PLAN.md hypothesis D2 is confirmed.** Fine-tuned ViTPose++-H beats the released FiDIP
+  model by +2.1 AP on Test400, the held-out set.
+  - That is far beyond the ≥ 0.5 rule; the seed std is 0.1.
+  - It also wins on the paper's own Test100: 95.2 vs 93.6.
+  - It is our new best configuration.
+- **Model size matters.**
+  - H beats L by +0.9 Test400, with fewer epochs.
+  - Zero-shot (no infant training) the gap was 0.7. Fine-tuning adds about +2.4 to L and +2.7
+    to H on Test400.
+- **Low LR and short schedules.**
+  - Test100 peaks around epoch 8-12 at LR 1e-5 and around epoch 3-4 at LR 5e-5. LR 5e-5
+    overfits.
+  - The 20-epoch H schedule has final ≈ best, so no early-stopping pick is needed.
+- **Why it works (interpretation).** The gain comes from a stronger adult-pose prior: COCO + AIC
+  + MPII ViTPose++ pretraining at scale. The domain-adaptation machinery is not the source.
+  - This agrees with Jahn et al. (2025), and with our rounds 1-4 finding that FiDIP's
+    adversarial term does not help.
+- **Still untested:**
+  - weight-soups of the ViT seeds (stage A applied to D)
+  - layer-wise LR decay
+  - stages B and C on the ViT
+  - E, which is still gated on unlabelled data

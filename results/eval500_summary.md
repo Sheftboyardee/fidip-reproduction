@@ -55,3 +55,16 @@ Members: ft40-s1/s2 Test400 90.3/90.0, aug-cj-s2/s3 90.3/90.3 (mean 90.2). `-bn`
 | ViTPose++-B (COCO expert) | 87.5 | 89.8 |
 | ViTPose++-L | 89.4 | 92.3 |
 | **ViTPose++-H** | **90.1** | **92.7** |
+
+### Round 8: stage D2, fine-tuned ViTPose++ (256x192, AdamW, decoder BN frozen; HRNet data pipeline)
+
+"best" = checkpoint picked on Test100 during training, so its Test400 score is still held out. Mean ± sample std over seeds.
+
+| Setup | n | **Test400** (final ckpt) | Test400 (best ckpt) | Test100 (final) | Test100 (best) |
+|---|---|---|---|---|---|
+| **ViTPose++-H, LR 1e-5, 20 ep (LR step 15)** | 2 | **92.8 ± 0.1** | 92.8 ± 0.3 | **95.2 ± 0.2** | 95.6 ± 0.0 |
+| ViTPose++-H, LR 1e-5, 40 ep (timed out at ep 24) | 1 | -- | 92.7 | -- | 95.7 |
+| ViTPose++-H, LR 5e-5, 40 ep (timed out at ep 24) | 1 | -- | 92.6 | -- | 95.0 |
+| ViTPose++-L, LR 1e-5, 40 ep (LR step 30) | 3 | 91.9 ± 0.3 | 92.3 ± 0.1 | 94.5 ± 0.1 | 94.9 ± 0.2 |
+| ViTPose++-L, LR 5e-5, 40 ep | 1 | 90.5 | 91.9 | 93.1 | 94.0 |
+| *reference: released hrnet_fidip* | 1 | 90.7 | -- | 93.6 | -- |

@@ -145,7 +145,8 @@ jobs until resume is fixed.
 | round 6 | mob-ft120-s1/s2, mob-ft200-s1/s2 (+ eval 11389519) | 11389498 11389506 11389505 11389508 | all COMPLETED | `output/<tag>` |
 | round 7 (stage A + D1) | vitpose-setup, soups, vitpose-zs, eval500-A-raw/bn | 11394626 11394628 11394634 11394636 11394637 | all COMPLETED | `output/soups/`, `eval500/vitpose/` |
 | round 8 (stage D2, BN bug) | vit-{l,h}-lr{5e-5,1e-5}-s1 (+ eval500-D2-l/h 11395213 11395216) | 11395200 11395203 11395205 11395206 | CANCELLED (user-approved): decoder BN in train mode collapsed AP | `output/<tag>` (discard) |
-| round 8b (stage D2, BN fixed) | vit2-{l,h}-lr{5e-5,1e-5}-s1 (+ eval500-D2b-l/h 11395527 11395547) | 11395455 11395479 11395499 11395504 | submitted 2026-10-26 | `output/<tag>` |
+| round 8b (stage D2, BN fixed) | vit2-{l,h}-lr{5e-5,1e-5}-s1 (+ eval500-D2b-l/h 11395527 11395547) | 11395455 11395479 11395499 11395504 | COMPLETED (H runs TIMEOUT at ep 24, best ckpt scored) | `output/<tag>` |
+| round 8c/8d (stage D2 seeds) | vit2-l-lr1e-5-s2/s3, vit2-h20-lr1e-5-s1/s2 (+ eval 11398156 11398679) | 11398128 11398145 11398580 11398625 | all COMPLETED. **Best: H20, Test400 92.8 ± 0.1** | `output/<tag>` |
 
 ## Guardrails
 
