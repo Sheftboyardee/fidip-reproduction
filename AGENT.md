@@ -798,3 +798,35 @@ The second seed of the best LR comes after these results.
   squeue after more than 60 s, so I resubmitted it once. The original then appeared as 11395551.
   The user approved cancelling that duplicate.
   - Lesson: wait longer than a minute before treating a failed sbatch as not queued.
+
+### Round 8b results (BN fixed), single seed each
+
+| Run | Epochs run | Test100 best (ep) | **Test400 final** | Test400 best-ckpt | Test100 final |
+|---|---|---|---|---|---|
+| ViTPose++-L, LR 5e-5 | 40 | 94.0 (3) | 90.5 | 91.9 | 93.1 |
+| **ViTPose++-L, LR 1e-5** | 40 | 94.9 (8) | **92.0** | 92.3 | 94.5 |
+| ViTPose++-H, LR 5e-5 | 24/40 (TIMEOUT) | 95.0 (4) | -- | 92.6 | -- |
+| **ViTPose++-H, LR 1e-5** | 24/40 (TIMEOUT) | 95.7 (10) | -- | **92.7** | -- |
+
+- **Fine-tuning ViTPose++ beats every HRNet result.**
+  - ViTPose++-L at LR 1e-5, final checkpoint: Test400 92.0 (+1.3 over the released hrnet_fidip at
+    90.7) and Test100 94.5 (+0.9 over the paper's 93.6).
+  - The best-ckpt numbers are selected on Test100 only, so their Test400 scores remain unbiased.
+    For ViTPose++-H that gives 92.7 Test400.
+- **LR 5e-5 overfits.** It peaks at epoch 3-4, then Test400 decays: L reaches 90.5 at the final
+  checkpoint.
+- **LR 1e-5 also peaks early.** Best epochs were 8 for L and 10 for H.
+- **ViTPose++-H is too slow for the planned schedule.** It takes about 3.8 min per epoch on a
+  V100, so 40 epochs (about 2.5 h) does not fit in 1.5 h.
+
+**Follow-ups submitted:**
+
+| Run | Job | Model / LR | Schedule |
+|---|---|---|---|
+| vit2-l-lr1e-5-s2 | 11398128 | ViTPose++-L, LR 1e-5 | 40 ep |
+| vit2-l-lr1e-5-s3 | 11398145 | ViTPose++-L, LR 1e-5 | 40 ep |
+| vit2-h20-lr1e-5-s1 | 11398580 | ViTPose++-H, LR 1e-5 | 20 ep, LR step at 15, TIME 1:45 |
+| vit2-h20-lr1e-5-s2 | 11398625 | ViTPose++-H, LR 1e-5 | 20 ep, LR step at 15, TIME 1:45 |
+
+- Evals: eval500-D2c-l (11398156) and eval500-D2d-h (11398679).
+- vit2-l-lr1e-5-s3 reported "Unexpected message" but did queue.
