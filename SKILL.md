@@ -149,6 +149,10 @@ jobs until resume is fixed.
 
 ## Guardrails
 
+- Before launching a new fine-tuning wrapper, compare train-mode vs eval-mode loss on one batch.
+  In round 8 the ViTPose++ decoder BatchNorm collapsed AP; the wrapper now freezes BN.
+- After an sbatch "Unexpected message", wait a few minutes (not one) before concluding it did not queue.
+
 - Never print, log or commit `.env` contents or any token. Read secrets from `.env` only.
 - Submit with `source ~/fidip_submit_lib.sh; submit <tag> [overrides]` (from the repo dir): it
   skips tags already in `sacct` and refuses to submit if `sacct` fails/returns nothing. Never
