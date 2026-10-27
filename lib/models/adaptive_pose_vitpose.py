@@ -19,6 +19,16 @@ class ViTPoseNet(nn.Module):
         # ViTPose++ is mixture-of-experts; expert 0 is the COCO head (17 keypoints, same order)
         self.moe = getattr(self.vitpose.config.backbone_config, 'num_experts', 1) > 1
 
+    def train(self, mode=True):
+        # Keep BatchNorm (the ViTPose++ "classic" decoder has two) on its COCO running stats.
+        # In train mode, per-batch stats of our small augmented infant batches roughly doubled the
+        # heatmap amplitude (loss x100) and wrecked the model within an epoch (round 8, first try).
+        super().train(mode)
+        for m in self.modules():
+            if isinstance(m, nn.modules.batchnorm._BatchNorm):
+                m.eval()
+        return self
+
     def forward(self, x):
         kw = {}
         if self.moe:
