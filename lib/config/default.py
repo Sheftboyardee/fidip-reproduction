@@ -102,6 +102,9 @@ _C.TRAIN.ADV_LOSS = 'neg_bce'
 _C.TRAIN.PRE_BN_FREEZE = False
 # Layer-wise LR decay for ViT backbones (tools/train_vitpose.py): block i of N gets LR * DECAY**(N-i). 1.0 = off.
 _C.TRAIN.LAYER_DECAY = 1.0
+# Share of real images per epoch for tools/train_vitpose.py (utils.sampler.MixSampler, shuffled).
+# < 0 = original BalancedBatchSampler (50/50, fixed order).
+_C.TRAIN.REAL_FRACTION = -1.0
 
 _C.TRAIN.RESUME = False
 _C.TRAIN.CHECKPOINT = ''

@@ -28,7 +28,7 @@ from core.loss import JointsMSELoss
 from core.function import AverageMeter
 from core.function import validate_adaptive
 from utils.utils import create_logger
-from utils.sampler import BalancedBatchSampler
+from utils.sampler import BalancedBatchSampler, MixSampler
 import dataset  # noqa: F401
 import models
 
@@ -92,8 +92,13 @@ def main():
     train_dataset = eval('dataset.' + cfg.DATASET.DATASET)(cfg, cfg.DATASET.ROOT, cfg.DATASET.TRAIN_SET, True, tf)
     valid_dataset = eval('dataset.' + cfg.DATASET.DATASET)(cfg, cfg.DATASET.ROOT, cfg.DATASET.TEST_SET, False, tf)
     syn_labels = train_dataset._load_syrip_syn_annotations()
+    sampler = BalancedBatchSampler(train_dataset, syn_labels)
+    if cfg.TRAIN.REAL_FRACTION >= 0:  # stage B: same epoch length, chosen real share, shuffled
+        sampler = MixSampler(syn_labels, cfg.TRAIN.REAL_FRACTION, len(sampler))
+        logger.info('=> MixSampler: %d of %d samples per epoch from %d real images',
+                    sampler.n_real, len(sampler), len(sampler.real))
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, sampler=BalancedBatchSampler(train_dataset, syn_labels),
+        train_dataset, sampler=sampler,
         batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU * len(cfg.GPUS),
         num_workers=cfg.WORKERS, pin_memory=cfg.PIN_MEMORY)
     valid_loader = torch.utils.data.DataLoader(

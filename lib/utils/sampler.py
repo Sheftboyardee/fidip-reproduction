@@ -51,3 +51,35 @@ class BalancedBatchSampler(torch.utils.data.sampler.Sampler):
 
     def __len__(self):
         return self.balanced_max*len(self.keys)
+
+class MixSampler(torch.utils.data.sampler.Sampler):
+    """Shuffled epochs with a fixed real:synthetic mix (PLAN.md stage B).
+
+    Each epoch has num_samples indices: round(real_fraction * num_samples) drawn from the real
+    images and the rest from the synthetic ones, each pool cycled in a fresh random order (so an
+    image repeats only after its whole pool has been used), then shuffled together.
+    BalancedBatchSampler above is the 0.5 case but with a fixed, unshuffled order every epoch.
+    labels: per-index synthetic flag (truthy = synthetic).
+    """
+    def __init__(self, labels, real_fraction, num_samples):
+        self.real = [i for i, s in enumerate(labels) if not s]
+        self.syn = [i for i, s in enumerate(labels) if s]
+        self.num_samples = num_samples
+        self.n_real = int(round(real_fraction * num_samples))
+
+    @staticmethod
+    def _draw(pool, n):
+        out = []
+        while len(out) < n:
+            p = pool[:]
+            random.shuffle(p)
+            out += p
+        return out[:n]
+
+    def __iter__(self):
+        idx = self._draw(self.real, self.n_real) + self._draw(self.syn, self.num_samples - self.n_real)
+        random.shuffle(idx)
+        return iter(idx)
+
+    def __len__(self):
+        return self.num_samples
