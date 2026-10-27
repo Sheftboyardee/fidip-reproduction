@@ -170,10 +170,12 @@ style) helps. First do a cheap check: per-keypoint loss trajectories from an exi
 | D1: ViTPose zero-shot | done (round 7) | ++-H 90.1 with no infant training; COCO HRNet zero-shot 86.7 |
 | **D2: ViTPose fine-tune** | **done (round 8)** | **++-H LR 1e-5 20 ep: 92.8 ± 0.1 (Test100 95.2), +2.1 over released FiDIP**; ++-L: 91.9 ± 0.3 |
 | A on D: ViTPose seed soups | done (round 9) | **D-soup-h20: 93.1 (Test100 95.7)**, +0.3 over its seeds; L soup 92.2 (+0.4) |
-| B, C, E, F | not started | Re-scope onto ViTPose++-H, the new baseline. |
+| C2: layer-wise LR decay | done (round 10) | null: 92.7-92.9 vs 92.8 (decay 0.95 / 0.9 / 0.9 at 3x LR) |
+| B: real:synthetic mix | done (round 10) | null: 92.6-93.0; **real-only (no synthetic) = 92.7, same as baseline** |
+| C1, C3, E, F | not started | C1/C3 deprioritised (C2 and WiSE-FT null); E is the main remaining lever (needs unlabelled data) |
 
 Candidate next steps on the new baseline, cheapest first:
 - ~~**A on D:** soup the two H20 seeds~~ (done: 93.1).
-- **C2:** layer-wise LR decay.
-- **B:** real-image oversampling.
+- ~~**C2:** layer-wise LR decay~~ (null).
+- ~~**B:** real-image oversampling~~ (null; synthetic data adds nothing for ViTPose++-H).
 - **E:** mean-teacher, once unlabelled infant images are available.

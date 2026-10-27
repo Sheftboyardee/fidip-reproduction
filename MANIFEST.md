@@ -139,6 +139,9 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-27 round8d **vit2-h20-lr1e-5-s1** (job 11398580) | vitpose cfg + `MODEL.HF_NAME usyd-community/vitpose-plus-huge TRAIN.LR 1e-5 TRAIN.END_EPOCH 20 TRAIN.LR_STEP [15]` | `output/vit2-h20-lr1e-5-s1/syrip/adaptive_pose_vitpose/vitpose_plus_256x192_infant/final_state.pth` (md5 44481f435c577c67720f393e4ef98bb0, 3.6 GB) | 95.1 | 98.3 | 98.3 | 96.3 | **Test400 final 92.7** |
 | 2026-10-27 round8d **vit2-h20-lr1e-5-s2** (job 11398625) | same | `output/vit2-h20-lr1e-5-s2/.../final_state.pth` (md5 cefdd05b06a05d72021d35fee428ddba) | 95.4 | 98.4 | 98.4 | 96.5 | **Test400 final 92.8** |
 
+| 2026-10-27 round10 C2 c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (jobs 11400434/11400442/11400455; eval 11400473) | H20 recipe + `TRAIN.LAYER_DECAY 0.95 / 0.9` (`TRAIN.LR 3e-5` for the last one) | `output/c2-*/syrip/adaptive_pose_vitpose/vitpose_plus_256x192_infant/final_state.pth` | 95.6 / 94.7 / 95.3 | -- | -- | -- | Test400 final 92.7 / 92.7 / 92.9: null |
+| 2026-10-27 round10 B b-rf{17,50,75,100}-s1 (jobs 11400506/11400510/11400521/11400537; eval 11401502) | H20 recipe + `TRAIN.REAL_FRACTION 0.1667 / 0.5 / 0.75 / 1.0` | `output/b-rf*-s1/.../final_state.pth` | 95.6 / 95.7 / 94.9 / 94.7 | -- | -- | -- | Test400 final 92.6 / 93.0 / 92.8 / 92.7: null; real-only = baseline |
+
 **Final reported numbers (2026-10-23):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).
 - Best model we trained: `ft40-s1` (job 11333089), `output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth` on Explorer: Test400 90.3, Test100 92.4 (final epoch). Recipe mean over 2 seeds: Test400 90.2 ± 0.2.

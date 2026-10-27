@@ -148,7 +148,7 @@ jobs until resume is fixed.
 | round 8b (stage D2, BN fixed) | vit2-{l,h}-lr{5e-5,1e-5}-s1 (+ eval500-D2b-l/h 11395527 11395547) | 11395455 11395479 11395499 11395504 | COMPLETED (H runs TIMEOUT at ep 24, best ckpt scored) | `output/<tag>` |
 | round 8c/8d (stage D2 seeds) | vit2-l-lr1e-5-s2/s3, vit2-h20-lr1e-5-s1/s2 (+ eval 11398156 11398679) | 11398128 11398145 11398580 11398625 | all COMPLETED. **Best: H20, Test400 92.8 ± 0.1** | `output/<tag>` |
 | round 9 (stage A on D) | vit-soups (CPU), eval500-Dsoup-h/l | 11400326 11400360 11400382 | all COMPLETED. **D-soup-h20: Test400 93.1** | `output/soups/D-soup-*.pth` |
-| round 10 (C2 + B on ViTPose++-H) | c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (+ eval500-C2 11400473); b-rf{17,50,75,100}-s1 (eval TBD) | 11400434 11400442 11400455 11400506 11400510 11400521 11400537 | submitted 2026-10-27 | `output/<tag>` |
+| round 10 (C2 + B on ViTPose++-H) | c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (+ eval500-C2 11400473); b-rf{17,50,75,100}-s1 (+ eval500-B 11401502) | 11400434 11400442 11400455 11400506 11400510 11400521 11400537 | all COMPLETED (B eval 11401502). Null: Test400 92.6-93.0 | `output/<tag>` |
 
 ## Guardrails
 

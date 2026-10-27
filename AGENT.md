@@ -954,3 +954,51 @@ on the laptop).
 | b-rf100-s1 | 11400537 | 1.0 | real only = B2 |
 
 - The eval for the B runs will be submitted once a slot frees up; the 8-job cap is reached.
+
+### Round 10 results (2026-10-27): C2 and B are both null
+
+All 7 runs and both evals (11400473, 11401502) completed. Full table:
+`results/eval500_summary.md`.
+
+| Run | Test400 final | Test100 final |
+|---|---|---|
+| baseline H20 (2 seeds) | 92.7, 92.8 | 95.1, 95.4 |
+| c2-ld95 | 92.7 | 95.6 |
+| c2-ld90 | 92.7 | 94.7 |
+| c2-ld90-lr3e-5 | 92.9 | 95.3 |
+| b-rf17 (natural 1/6) | 92.6 | 95.6 |
+| b-rf50 (shuffled 50/50) | 93.0 | 95.7 |
+| b-rf75 | 92.8 | 94.9 |
+| b-rf100 (real only) | 92.7 | 94.7 |
+
+**Every config is within −0.2 to +0.2 of the baseline on Test400.**
+- None reaches the +0.3 screen, so no second seeds (pre-registered rule).
+- The spread across all 7 runs is 92.6-93.0. That is consistent with seed noise of about
+  ±0.1-0.2.
+
+**C2, layer-wise LR decay: no effect.**
+- Even nearly freezing the early blocks (decay 0.9 at LR 1e-5) leaves Test400 unchanged.
+  Strong decay with the base LR does learn more slowly on Test100: 94.7 final, and the best epoch
+  is 13 rather than 8-12.
+- This matches the WiSE-FT result in round 7. Limiting how far the backbone moves from its
+  pretrained weights neither helps nor hurts.
+- Interpretation: at LR 1e-5 for 20 epochs, the fine-tune is already gentle enough.
+
+**B, real:synthetic mix: no effect on Test400.**
+- **Synthetic data adds nothing measurable for ViTPose++-H.** Training on the 200 real images
+  alone (b-rf100) gives Test400 92.7, the same as the baseline.
+- The natural 1/6 mix without oversampling gives 92.6.
+- There is a weak hint on Test100: rf75 and rf100 finish at 94.7-94.9 vs 95.1-95.7 with more
+  synthetic data. But that is single-seed on a 100-image set, below our noise threshold, and it
+  is absent on Test400.
+- Shuffling (rf50 vs the unshuffled baseline) gives +0.2, which is not significant.
+- Implication for PLAN.md:
+  - §7.1 (generating more synthetic infants with `syn_generation/`) is unlikely to pay off for
+    this backbone.
+  - The original FiDIP paper's synthetic-data gain was measured on a much weaker adult-pose prior.
+
+**Where this leaves the project.** The recipe is saturated around Test400 92.8-93.0, and the
+soup is at 93.1.
+- The remaining levers are data the model has never seen (stage E, unlabelled real infant
+  images) and a different architecture or resolution.
+- Training hyper-parameters, layer-wise LR and data mix are not levers here.

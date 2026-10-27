@@ -75,3 +75,17 @@ Members: ft40-s1/s2 Test400 90.3/90.0, aug-cj-s2/s3 90.3/90.3 (mean 90.2). `-bn`
 |---|---|---|---|---|
 | **D-soup-h20** (H20 s1+s2) | 92.7, 92.8 (92.8) | **93.1** | 95.1, 95.4 (95.2) | **95.7** |
 | D-soup-l3 (L lr1e-5 s1+s2+s3) | 92.0, 91.5, 92.1 (91.9) | 92.2 | 94.5, 94.4, 94.6 (94.5) | 94.7 |
+
+### Round 10: stages C2 (layer-wise LR decay) and B (real:synthetic mix) on ViTPose++-H, 20 ep, single seed each (screen)
+
+Baseline is H20, LR 1e-5, with the original 50/50 unshuffled sampler and no decay: Test400 92.7 / 92.8 (2 seeds), Test100 95.1 / 95.4.
+
+| Setup | **Test400** (final) | Test400 (best) | Test100 (final) | Test100 (best) |
+|---|---|---|---|---|
+| C2 layer decay 0.95, LR 1e-5 | 92.7 | 92.9 | 95.6 | 95.7 |
+| C2 layer decay 0.90, LR 1e-5 | 92.7 | 92.6 | 94.7 | 94.7 |
+| C2 layer decay 0.90, LR 3e-5 | 92.9 | 93.0 | 95.3 | 95.6 |
+| B real fraction 1/6 (natural mix, shuffled) | 92.6 | 92.7 | 95.6 | 95.9 |
+| B real fraction 0.5 (shuffled control) | 93.0 | 93.0 | 95.7 | 95.9 |
+| B real fraction 0.75 | 92.8 | 93.1 | 94.9 | 95.6 |
+| B real fraction 1.0 (real only, no synthetic) | 92.7 | 93.1 | 94.7 | 95.6 |
