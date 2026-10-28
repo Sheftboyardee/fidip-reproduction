@@ -53,6 +53,10 @@ Host explorer
   installs inside a job on the `short` partition, never on the login node.
 - GPUs (partition `gpu`, 8 h max; `gpu-short` 2 h): V100 (16/32 GB), T4, A100, H200.
   torch 2.3.1+cu121 supports all of them. Request a type with `--gres=gpu:a100:1` etc.
+- **QOS limit: 4 running jobs and 8 queued per user** (QOSMaxJobsPerUserLimit). The sbatch error
+  "Unexpected message received" often means the job *was* queued: check `squeue` before resubmitting.
+- **Second venv `~/venvs/sapiens2`** (torch 2.7.1+cu126, transformers 5.x) is used only for
+  Sapiens2 (`scripts/sapiens2_setup.sbatch`). Do not mix it with `~/venvs/fidip` (transformers 4.53.3).
 
 ## Filesystem layout (cluster)
 
@@ -116,6 +120,28 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
   - The HRNet training script freezes the first 109 parameters (stem + stage 1). This is hard-coded
     upstream; `train_vitpose.py` does not do it.
 
+- Round 12 additions (2026-10-27/28):
+  - **Grouped CV for method selection.**
+    - `scripts/make_cv_folds.py` writes `data/syrip_cv/f<k>/` (5 folds of the 200 real images, grouped by source).
+    - Train a fold with `submit cv-<tag>-f<k> <overrides> DATASET.ROOT data/syrip_cv/f<k>/ DATASET.TEST_SET heldout_infant`.
+    - Copy results locally with `scratchpad`-style `ssh -n ... cat`. `tar` into the symlinked `output/` fails across devices.
+    - Score with `python scripts/cv_score.py --tags cv-h20 cv-<tag> --ref cv-h20`. It reports pooled OOF AP and the advance rule.
+  - **Overlap audit and bootstrap.**
+    - `scripts/audit_overlap.py` writes `output/audit12/overlap/` (test_subsets.json, eligible_unlabeled.json).
+    - `scripts/bootstrap_ap.py --a ref.json --b cand.json` gives a paired source-group bootstrap CI on Test400 / Test400_indep / Test100.
+  - **New training switches** (`tools/train_vitpose.py`):
+    - `LOSS.TYPE rspose` (+ `LOSS.RS_INST`).
+    - Mean teacher: `TRAIN.MT_ITEMS <boxes.json> TRAIN.MT_WITH_LABELED True TRAIN.GRAD_CKPT True AUTO_RESUME True`.
+      This needs 2 chained jobs per fold (~10 min/epoch on V100) and about 45 GB host RAM.
+  - **Labels and boxes.**
+    - `tools/label_audit.py` builds a LOCAL review page. It contains SyRIP images, so never publish it.
+    - `tools/apply_label_corrections.py` applies the exported decisions.json.
+    - `tools/estimate_boxes.py` gives zero-shot boxes for unannotated images.
+  - **Sapiens2.**
+    - `scripts/sapiens2_zeroshot.sbatch` runs `tools/test_sapiens2.py` (GT boxes, Goliath-308 -> COCO-17) for 0.4b/1b.
+    - Outputs go to `output/audit12/sapiens2/`.
+    - `scripts/ensemble_kpts.py --a x.json --b y.json --out ens.json` averages two prediction files.
+
 ## Common operations (cluster)
 
 ```bash
@@ -154,6 +180,7 @@ jobs until resume is fixed.
 | round 9 (stage A on D) | vit-soups (CPU), eval500-Dsoup-h/l | 11400326 11400360 11400382 | all COMPLETED. **D-soup-h20: Test400 93.1** | `output/soups/D-soup-*.pth` |
 | round 10 (C2 + B on ViTPose++-H) | c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (+ eval500-C2 11400473); b-rf{17,50,75,100}-s1 (+ eval500-B 11401502) | 11400434 11400442 11400455 11400506 11400510 11400521 11400537 | all COMPLETED (B eval 11401502). Null: Test400 92.6-93.0 | `output/<tag>` |
 | round 11 (B2 confirm + 384x288) | b-rf100-s2 (+ eval500-B2 11410741); d3-h384-lr1e-5-s1 chained p1/p2/p3 (+ eval500-D3 11410743) | 11410487 11410716 11410725 11410732 | all COMPLETED (p1, p2 TIMEOUT by design, resumed). Null: real-only 92.9; 384x288 92.7 | `output/<tag>` |
+| round 12 (CV + E2/E3/E4) | cv-h20-f0..4, cv-rs-f0..4, cv-mt-f0..4 (+p2/p3), sapiens2-setup/zs, r12-prep | 11422061-11422084, 11422319-11424695, 11424797-11434194, 11422150 11424809 11422557 | all COMPLETED. CV: h20 94.39, rs 94.03, mt 93.61; S2-1b zs 94.76; **H20+S2-1b ensemble 95.94, Test400 93.8** | `output/cv-*-f<k>`, `output/audit12/` |
 
 ## Guardrails
 

@@ -243,3 +243,18 @@ changes, more LLRD settings, repeating interpolated 384x288, ImageNet-init Mobil
 - **Budget:** the plan's 8-12-run cap is revised after the smoke tests, because clean validation
   needs 5 fold runs per screen. Planned: baseline CV + E2 + E3 (+ E2b, E1 if warranted) = 15-25 fold
   runs of ~1.5 GPU-h, plus <= 4 confirmation runs. No hyperparameter sweeps inside a screen.
+
+### Round 12 status (2026-10-28)
+
+| Exp | Result | Decision |
+|---|---|---|
+| CV baseline (H20) | pooled OOF 94.39 | reference |
+| E2 RSPose spatial | -0.36, 1/5 folds | no advance; E2b skipped |
+| E3 mean teacher | -0.78, 0/5 folds | no advance |
+| E4 Sapiens2-1b zero-shot | +0.37, 3/5 folds; Test400_indep tie | competitive without fine-tuning |
+| E4 follow-up: H20 + S2-1b ensemble (fixed 0.5/0.5, not pre-registered) | +1.55, 5/5 folds | Test400 93.8 (both H20 seeds), Test400_indep +1.2-1.3, Test100 n.s. Best system so far |
+| E1 corrected labels | audit page built (16 flagged images) | waiting for human adjudication |
+
+Next candidates:
+- Fine-tune Sapiens2 (expensive at 1024x768; must be CV-screened).
+- Ensemble Sapiens2 with an E1-corrected H20 once E1 is done.

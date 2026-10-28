@@ -188,3 +188,34 @@ Checkpoints: `vit2-h20-lr1e-5-s1` and `-s2` (rows above). Per-checkpoint scores 
 - `D-soup-l3.pth` (ViTPose++-L, 3 seeds): Test400 92.2, Test100 94.7.
 - Deleted 2026-10-27, at the user's request: the BN-bug outputs `output/vit-*` (round 8 first
   attempt).
+
+**Update 2026-10-28 (round 12): best system = H20 + Sapiens2-1b keypoint ensemble (no extra training).**
+
+Recipe:
+1. Run the H20 checkpoint (or D-soup-h20) with the usual eval on GT boxes.
+2. Run `facebook/sapiens2-pose-1b` zero-shot with `tools/test_sapiens2.py` (venv `~/venvs/sapiens2`, flip test, GT boxes).
+3. Average the two with `scripts/ensemble_kpts.py` (0.5/0.5).
+
+Scores:
+
+| System | Test400 | Test400_indep | Test100 |
+|---|---|---|---|
+| H20-s1 + S2-1b | **93.8** | 93.9 | 95.3 |
+| H20-s2 + S2-1b | **93.8** | 93.8 | 95.6 |
+| D-soup + S2-1b | **94.0** | 94.0 | 95.4 |
+
+- Grouped-CV (200 real images, out-of-fold): 95.94 vs 94.39 for H20 alone.
+
+Round 12 artifacts:
+
+| Location | Contents |
+|---|---|
+| `output/audit12/` (local; gitignored, SyRIP-derived) | overlap/ (pairs, groups, test subsets, eligible extras) |
+| | oof/ (pooled CV predictions) |
+| | sapiens2/ (zero-shot predictions + overlays) |
+| | results/ (Test500 prediction files incl. ensembles) |
+| | labels/ (audit candidates, review page) |
+| | mt/ (eligible boxes) |
+| Explorer | `output/cv-{h20,rs,mt}-f<k>/` (fold checkpoints, ~3.6 GB each) |
+| | `output/audit12/sapiens2/` |
+| | HF cache with sapiens2-pose-{0.4b,1b} |

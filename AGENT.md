@@ -1231,3 +1231,9 @@ E2b (I-Sort) is skipped: the pre-registered condition was that spatial RS looks 
 **E1 label audit:**
 - Flags: 16 images, 19 flags (17 swap, 1 far, 1 vis), plus 20 random images.
 - Waiting for human adjudication.
+
+**E3 mean teacher (cv-mt), final:**
+- Pooled 93.61, **-0.78** vs baseline. Fold diffs -0.9 / -0.6 / -0.5 / -0.5 / -1.5, better in 0/5. **No advance.**
+- The student's supervised loss and accepted rate (~95%) looked healthy. The consistency term on 52 + 160 images did not help the final student.
+- The EMA teacher checkpoints (`teacher_final.pth`) were not scored: the student lost in every fold, and the teacher is a smoothed copy of it.
+- Fold 0 p2 ran on a slow node (d1020, ~10 min/epoch) and was killed. p3 resumed at epoch 17 on a fast node (~70 s/epoch).
