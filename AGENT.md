@@ -1178,3 +1178,56 @@ decision-threshold size. Decoder frozen.
 | cv-rs-f0, f1 | 11422319 11422326 | E2 spatial RS, folds 0-1 (f2-f4 when slots free) |
 | sapiens2-setup | 11422150 | venv + checkpoints (short partition) |
 | r12-prep | (after setup) | boxes for the 52 eligible images; zero-shot ++-H on 200R |
+
+### Results (2026-10-28)
+
+**Baseline CV (cv-h20):** pooled OOF AP **94.39**; folds 92.9 / 94.0 / 95.2 / 94.7 / 95.0.
+
+**E2, spatial RSPose (cv-rs):** pooled 94.03, **-0.36** vs baseline. Fold diffs -0.9 / +0.1 / -0.1 / -0.3 / -0.4, better in 1/5. **No advance.**
+E2b (I-Sort) is skipped: the pre-registered condition was that spatial RS looks promising.
+
+**E4, Sapiens2 zero-shot** (`tools/test_sapiens2.py`, GT boxes, flip test, job 11424809):
+
+| Model | real200 (clean) | Test400 | Test100 | Test400_indep |
+|---|---|---|---|---|
+| 0.4b | 94.1 | 91.6 | 92.9 | 92.0 |
+| 1b | 94.8 | 92.1 | 93.4 | 92.5 |
+| H20-s1 (ref) | 94.39 (OOF) | 92.7 | 95.1 | 92.6 |
+
+- The overlays confirm the Goliath->COCO mapping.
+- Sapiens2-1b has never seen SyRIP, yet it matches the fine-tuned H20 on clean data:
+  - real200: +0.37, better in 3/5 folds;
+  - Test400_indep: -0.06, CI [-1.0, +1.6].
+- It trails on the linked subsets (Test400_linked -1.5, Test100 -1.7). That is consistent with H20 benefiting from train/test source overlap.
+
+**E4 follow-up, keypoint ensemble** (`scripts/ensemble_kpts.py`):
+- Rule: 0.5/0.5 average of coordinates and scores; instance score recomputed. Fixed before scoring, no weight tuning.
+- This combination was not a pre-registered candidate. It answers the plan's E4 question ("stronger or *complementary*?").
+
+| Comparison | Set | Diff [95% CI] |
+|---|---|---|
+| OOF H20 + S2-1b vs cv-h20 | real200 CV | **+1.55** pooled, 5/5 folds better (94.3 / 96.3 / 96.1 / 96.9 / 95.7) |
+| H20-s1 + S2-1b vs H20-s1 | Test400 | **93.8**, +1.06 [+0.68, +1.62] |
+| | Test400_indep | +1.32 [+0.65, +1.73] |
+| | Test100 | 95.3, +0.19 [-0.57, +1.01] |
+| H20-s2 + S2-1b vs H20-s2 | Test400 | **93.8**, +0.96 [+0.58, +1.73] |
+| | Test400_indep | +1.18 [+0.55, +1.91] |
+| | Test100 | +0.17 (n.s.) |
+| H20-s1 + S2-1b vs D-soup-h20 | Test400 | +0.70 [+0.39, +1.36] |
+| | Test400_indep | +1.04 |
+| | Test100 | -0.39 (n.s.) |
+| D-soup + S2-1b vs D-soup-h20 | Test400 | **94.0**, +0.94 [+0.42, +1.48] |
+| | Test400_indep | +1.10 |
+| | Test100 | -0.24 (n.s.) |
+
+- The gain is largest on Test400_indep, the subset with no source overlap. It is absent on Test100.
+- Cost: inference runs two models. Sapiens2-1b runs at 1024x768 in a separate venv.
+
+**E3 mean teacher:**
+- Folds needed 2-3 chained jobs: about 10 min/epoch with GRAD_CKPT.
+- cv-mt-f0-p2 (11430056) was killed with signal 9; MaxRSS was 47 GB against a 32 GB request.
+- It was resubmitted as p3 (11434194) with AUTO_RESUME.
+
+**E1 label audit:**
+- Flags: 16 images, 19 flags (17 swap, 1 far, 1 vis), plus 20 random images.
+- Waiting for human adjudication.
