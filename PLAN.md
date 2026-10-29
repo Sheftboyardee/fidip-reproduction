@@ -262,3 +262,26 @@ Next candidates:
   - CV-screened Sapiens2 fine-tune (or a COCO-17 head on Sapiens2 features).
   - Learned/weighted ensembling, which must be tuned inside CV folds only.
   - New infant video (stage E), deduplicated against Test500.
+
+## Round 13 (2026-10-29): Sapiens2 fine-tune, pre-registered before any fine-tuned result
+
+Setup:
+- **Model:** `facebook/sapiens2-pose-1b`, full fine-tune (`tools/train_sapiens2.py`, `scripts/sapiens2_ft.sbatch`, H200).
+- **Head:** the pretrained Goliath-308 head is kept, with loss on the 17 mapped channels only.
+- **Data:** the same CV folds as round 12 (160 real + 1000 synthetic per fold; original labels, since E1 was null).
+- **Recipe, fixed:**
+  - Processor crops and targets (UDP Gaussian, sigma 6, 256x192 heatmaps).
+  - Augmentation: flip, box scale 0.75-1.25, shift ±0.1, colour 0.3; no rotation.
+  - AdamW, LR 1e-5, wd 0.01, batch 8, bf16, gradient checkpointing.
+  - **10 epochs** (1450 steps, the same step count as H20), LR x0.1 from epoch 8.
+  - Final-epoch checkpoint, flip test, GT boxes.
+
+Smoke test (job 11476421, 60 steps, no score inspected):
+- Target round-trip through the HF decoder: 0.000% error, plain and flipped.
+- About 1.6 s/step, 38 GB.
+
+Decision rules:
+- **Primary:** OOF ensemble H20 + S2-1b-ft (fixed 0.5/0.5) vs the current best, H20 + S2-1b-zs (pooled 95.94).
+  Advance if pooled >= +0.5 **and** better in >= 4/5 folds.
+- **Secondary (reported, not decisive):** S2-1b-ft alone vs S2-1b-zs (94.76) and vs cv-h20 (94.39); the same numbers on the corrected labels.
+- **If it advances:** frozen confirmation. Fine-tune on all 1200 training images, 2 seeds, and score Test400 / Test400_indep / Test100 with the bootstrap, alone and in the ensemble.
