@@ -1262,3 +1262,24 @@ Existing runs rescored on the corrected labels (`cv_score.py --gt ...fixed.json`
 | cv-mt | 93.86 |
 
 Caveat: the corrected coordinates come partly from cv-h20's own OOF predictions, so the corrected-label score slightly favours cv-h20.
+
+**E1 corrected labels (cv-fix), final:** no advance.
+
+| Scored against | cv-h20 | cv-fix | Diff | Folds better |
+|---|---|---|---|---|
+| Original held-out labels | 94.39 | 94.28 | -0.11 | 3/5 (-0.2 / +0.5 / +0.3 / -0.3 / +0.1) |
+| Corrected held-out labels | 94.95 | 94.82 | -0.13 | 2/5 |
+
+- In the Sapiens2 ensemble, cv-fix + S2-1b scores 95.72 against 95.94 for cv-h20 + S2-1b (-0.22).
+- Interpretation: 18 wrong joints among ~2,900 labelled real joints (~0.6%) are within the noise. Label noise is not what limits H20 on SyRIP.
+- Correcting the evaluation labels raises measured AP by ~0.5 for every method, but does not change their ranking.
+- Node note: cv-fix-f0 ran on d4052 at ~13 s/epoch (whole run 6 min) versus ~4 min/epoch on V100 nodes. It completed all 20 epochs normally.
+
+**Round 12 conclusion:**
+- E1, E2 and E3 are null under the pre-registered CV rule.
+- E4 changes the picture: H20 + Sapiens2-1b zero-shot (fixed 0.5/0.5) gives
+  - CV +1.55 (5/5 folds);
+  - Test400 93.8 (both seeds), 94.0 with the soup;
+  - Test400_indep +1.2 to +1.3;
+  - Test100 unchanged.
+- Recommended system: D-soup-h20 + Sapiens2-1b ensemble (MANIFEST.md).

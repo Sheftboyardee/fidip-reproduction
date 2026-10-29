@@ -253,8 +253,12 @@ changes, more LLRD settings, repeating interpolated 384x288, ImageNet-init Mobil
 | E3 mean teacher | -0.78, 0/5 folds | no advance |
 | E4 Sapiens2-1b zero-shot | +0.37, 3/5 folds; Test400_indep tie | competitive without fine-tuning |
 | E4 follow-up: H20 + S2-1b ensemble (fixed 0.5/0.5, not pre-registered) | +1.55, 5/5 folds | Test400 93.8 (both H20 seeds), Test400_indep +1.2-1.3, Test100 n.s. Best system so far |
-| E1 corrected labels | audit page built (16 flagged images) | waiting for human adjudication |
+| E1 corrected labels (18 joints / 16 images, user-adjudicated; 0/20 controls wrong) | -0.11 (3/5) on original labels, -0.13 (2/5) on corrected labels | no advance |
 
 Next candidates:
 - Fine-tune Sapiens2 (expensive at 1024x768; must be CV-screened).
-- Ensemble Sapiens2 with an E1-corrected H20 once E1 is done.
+- E1-corrected H20 inside the ensemble: -0.22, not pursued.
+- Most promising next steps:
+  - CV-screened Sapiens2 fine-tune (or a COCO-17 head on Sapiens2 features).
+  - Learned/weighted ensembling, which must be tuned inside CV folds only.
+  - New infant video (stage E), deduplicated against Test500.
