@@ -1237,3 +1237,28 @@ E2b (I-Sort) is skipped: the pre-registered condition was that spatial RS looks 
 - The student's supervised loss and accepted rate (~95%) looked healthy. The consistency term on 52 + 160 images did not help the final student.
 - The EMA teacher checkpoints (`teacher_final.pth`) were not scored: the student lost in every fold, and the teacher is a smoothed copy of it.
 - Fold 0 p2 ran on a slow node (d1020, ~10 min/epoch) and was killed. p3 resumed at epoch 17 on a fast node (~70 s/epoch).
+
+**E1 label adjudication (2026-10-28, by the user):**
+- All 19 flags were accepted. All 20 random controls were "labels OK"; these were judged on a separate page showing the labels alone, named and coloured left/right (`review_controls.html`).
+- So the audit missed no errors in the random sample: 0 of 20, roughly < 14% of unflagged images at 95%.
+
+How "accepted swaps" were resolved (`apply_label_corrections.py --candidates`):
+- In 13 of 17, the partner label was already on its own joint. Both points sat on one spot, e.g. both ears clicked on one ear, so exchanging them would be a no-op. These joints were moved to their model consensus position: the mean of OOF cv-h20 and zero-shot ++-H.
+- Image 300 (hips) is a true mutual swap and was exchanged.
+- Image 77: both ears were moved to consensus.
+- The first run of the tool still exchanged the "resolved" joints because the swap branch took precedence. This was caught in the log and fixed before any training.
+- Result: 18 corrected joints in 16 images (logs in `output/audit12/labels/applied/`). Before/after overlays were checked.
+
+E1 setup:
+- Corrected fold jsons are in `data/syrip_cv_fix/f<k>/` (held-out jsons unchanged); `data/syrip_cv/real200_validate_fixed.json` holds the corrected labels for scoring.
+- CV runs cv-fix-f0..f4: jobs 11458353 11458369 11458372 11458385 11458389.
+
+Existing runs rescored on the corrected labels (`cv_score.py --gt ...fixed.json`):
+
+| Run | Pooled AP |
+|---|---|
+| cv-h20 | 94.95 |
+| cv-rs | 94.36 |
+| cv-mt | 93.86 |
+
+Caveat: the corrected coordinates come partly from cv-h20's own OOF predictions, so the corrected-label score slightly favours cv-h20.

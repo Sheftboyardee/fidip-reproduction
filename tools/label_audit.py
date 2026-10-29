@@ -63,6 +63,8 @@ def main():
     ap.add_argument('--conf', type=float, default=0.5)
     ap.add_argument('--random', type=int, default=20)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--controls-page', default='review_controls.html',
+                    help='separate page for the random sample: plain crop + named, L/R-coloured labels only')
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -139,6 +141,7 @@ def main():
         over = img.copy()
         draw(over, g, (0, 200, 0))
         draw(over, p, (0, 0, 230), vis_only=False)
+        named = draw_named(img.copy(), g)
         for f in c['flags']:
             jx, jy = g[f['joint'], :2]
             cv2.circle(over, (int(jx), int(jy)), 14, (0, 220, 255), 2, cv2.LINE_AA)
@@ -146,12 +149,69 @@ def main():
         vis = g[g[:, 2] > 0]
         x0, y0 = np.maximum(vis[:, :2].min(0) - 60, 0).astype(int)
         x1, y1 = np.minimum(vis[:, :2].max(0) + 60, [img.shape[1] - 1, img.shape[0] - 1]).astype(int)
-        crop = over[y0:y1, x0:x1]
-        s = 520 / max(crop.shape[:2])
-        crop = cv2.resize(crop, None, fx=s, fy=s)
-        ok, buf = cv2.imencode('.jpg', crop, [cv2.IMWRITE_JPEG_QUALITY, 85])
-        cards.append((c, base64.b64encode(buf).decode()))
-    write_html(os.path.join(args.out, 'review.html'), cards, prim_name)
+        cards.append((c, enc(over, x0, y0, x1, y1), enc(img, x0, y0, x1, y1), enc(named, x0, y0, x1, y1)))
+    write_html(os.path.join(args.out, 'review.html'), [cd[:2] for cd in cards if cd[0]['flags']], prim_name)
+    write_controls(os.path.join(args.out, args.controls_page), [cd for cd in cards if cd[0].get('random_sample')])
+
+
+def enc(img, x0, y0, x1, y1, size=520):
+    crop = img[y0:y1, x0:x1]
+    s = size / max(crop.shape[:2])
+    ok, buf = cv2.imencode('.jpg', cv2.resize(crop, None, fx=s, fy=s), [cv2.IMWRITE_JPEG_QUALITY, 88])
+    return base64.b64encode(buf).decode()
+
+
+SHORT = ['nose', 'L eye', 'R eye', 'L ear', 'R ear', 'L sho', 'R sho', 'L elb', 'R elb',
+         'L wri', 'R wri', 'L hip', 'R hip', 'L kne', 'R kne', 'L ank', 'R ank']
+SIDE = {'L': (255, 120, 0), 'R': (0, 140, 255), 'n': (255, 255, 255)}  # BGR: left blue, right orange
+
+
+def draw_named(img, kp):
+    """Labels only: each joint named, the infant's left side blue, right side orange; v=1 drawn hollow."""
+    t = max(1, round(max(img.shape[:2]) / 700))
+    for a, b in SKELETON:
+        if kp[a, 2] > 0 and kp[b, 2] > 0:
+            col = SIDE[SHORT[a][0]] if SHORT[a][0] == SHORT[b][0] else (200, 200, 200)
+            cv2.line(img, tuple(int(v) for v in kp[a, :2]), tuple(int(v) for v in kp[b, :2]), col, t, cv2.LINE_AA)
+    for j in range(17):
+        if kp[j, 2] > 0:
+            col = SIDE[SHORT[j][0]]
+            pt = (int(kp[j, 0]), int(kp[j, 1]))
+            cv2.circle(img, pt, 4 * t, col, -1 if kp[j, 2] == 2 else t, cv2.LINE_AA)
+            for c, w in (((0, 0, 0), 3 * t), (col, t)):
+                cv2.putText(img, SHORT[j], (pt[0] + 6 * t, pt[1] - 4 * t), 0, 0.45 * t, c, w, cv2.LINE_AA)
+    return img
+
+
+def write_controls(path, cards):
+    rows = []
+    for k, (c, _, plain, named) in enumerate(cards):
+        i = c['image_id']
+        rows.append(f'''<section><h3>#{k + 1} {c['file_name']} (id {i})</h3>
+<img src="data:image/jpeg;base64,{plain}"><img src="data:image/jpeg;base64,{named}">
+<div class="flag random" data-id="{i}_random" data-img="{i}" data-joint="-1" data-kind="random" data-xy="">
+<label><input type="radio" name="{i}_r" value="ok"> labels OK</label>
+<label><input type="radio" name="{i}_r" value="problem"> problem</label>
+<input class="why" placeholder="which joint / what is wrong" size="40"></div></section>''')
+    html = f'''<!doctype html><html><head><meta charset="utf-8"><title>SyRIP label audit: controls</title>
+<style>body{{font:14px system-ui;margin:16px;max-width:1120px}}section{{display:flex;gap:12px;border-top:1px solid #ccc;padding:12px 0;flex-wrap:wrap}}
+h3{{width:100%;margin:0}}img{{max-width:520px;width:49%}}.flag{{width:100%;padding:6px;background:#f5f5f5;border-radius:6px}}
+label{{margin-right:8px}}#bar{{position:sticky;top:0;background:#fff;padding:8px 0;z-index:1;border-bottom:1px solid #ccc}}
+.L{{color:#0078ff;font-weight:bold}}.R{{color:#ff8c00;font-weight:bold}}</style></head><body>
+<div id="bar"><b>SyRIP label audit: 20 random unflagged images</b> (control sample). Left: plain image. Right: the stored labels only &mdash;
+<span class="L">blue = infant's LEFT</span>, <span class="R">orange = infant's RIGHT</span>, filled dot = visible (v=2), hollow = occluded (v=1), no dot = unlabelled.
+Check that each named point sits on that joint and on the correct side of the body.
+Local file with private SyRIP images: do not upload or share. <button onclick="dl()">Download decisions_controls.json</button> <span id="n"></span></div>
+{''.join(rows)}
+<script>
+function collect(){{const out=[];document.querySelectorAll('.flag').forEach(f=>{{const r=f.querySelector('input[type=radio]:checked');
+const why=f.querySelector('.why');if(!r&&!why.value)return;
+out.push({{id:f.dataset.id,image_id:+f.dataset.img,joint:-1,kind:'random',proposal_xy:'',decision:r?r.value:'problem',xy:'',reason:why.value}});}});return out;}}
+function dl(){{const b=new Blob([JSON.stringify(collect(),null,1)],{{type:'application/json'}});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download='decisions_controls.json';a.click();}}
+document.addEventListener('change',()=>{{document.getElementById('n').textContent=collect().length+' / {len(cards)} reviewed';}});
+</script></body></html>'''
+    open(path, 'w', encoding='utf-8').write(html)
 
 
 def write_html(path, cards, prim_name):

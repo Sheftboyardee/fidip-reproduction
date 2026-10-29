@@ -5,7 +5,9 @@ held-out images (results/keypoints_heldout_infant_results_0.json, written by the
 They are pooled into <out>/<tag>.json and scored on data/syrip_cv/real200_validate.json
 (area = bbox w*h): pooled out-of-fold AP and per-fold AP. With --ref, the per-fold differences and
 the advance rule (pooled +0.5 and better in >= 4 of 5 folds) are reported against that tag.
-Usage: python scripts/cv_score.py --tags cv-h20 cv-rs [--ref cv-h20] [--out output/audit12/oof]
+--gt data/syrip_cv/real200_validate_fixed.json scores against the E1-corrected labels instead
+(pooled files are then written as <tag>_fixedgt.json so the originals are not overwritten).
+Usage: python scripts/cv_score.py --tags cv-h20 cv-rs [--ref cv-h20] [--out output/audit12/oof] [--gt ...]
 """
 import argparse
 import contextlib
@@ -39,10 +41,11 @@ def main():
     ap_.add_argument('--k', type=int, default=5)
     ap_.add_argument('--result', default='keypoints_heldout_infant_results_0.json')
     ap_.add_argument('--out', default='output/audit12/oof')
+    ap_.add_argument('--gt', default=GT)
     args = ap_.parse_args()
     os.makedirs(args.out, exist_ok=True)
     with contextlib.redirect_stdout(io.StringIO()):
-        gt = COCO(GT)
+        gt = COCO(args.gt)
     folds = json.load(open('data/syrip_cv/folds.json'))
     fold_ids = [[int(i) for i, k in folds.items() if k == f] for f in range(args.k)]
     scores = {}
@@ -57,7 +60,7 @@ def main():
             pooled += json.load(open(hits[0]))
         if not ok:
             continue
-        path = os.path.join(args.out, f'{tag}.json')
+        path = os.path.join(args.out, f'{tag}.json' if args.gt == GT else f'{tag}_fixedgt.json')
         json.dump(pooled, open(path, 'w'))
         scores[tag] = {'pooled': ap(gt, path, sorted(gt.getImgIds())),
                        'folds': [ap(gt, path, ids) for ids in fold_ids]}

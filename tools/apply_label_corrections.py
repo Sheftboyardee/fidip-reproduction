@@ -7,6 +7,11 @@ verdicts are kept for the record only. Per kind:
   far     -> move the joint to the proposed (or typed) x,y; visibility unchanged
   vis     -> set v=2 for 'v=1 but visible', or v=0 and zero coordinates for 'v=0 with coordinates'
   edit    -> move to the typed x,y
+With --candidates (candidates.json from the audit), an accepted 'swap' is first resolved:
+  if the partner's label already sits on the partner (closer to the partner's own consensus prediction
+  than to this joint's), the error is a duplicated point, not a mutual swap; exchanging would be a no-op,
+  so this joint is moved to its model consensus instead (mean of the audit's predictions). An accepted
+  'far' joint whose partner has an accepted swap is handled the same way (both moved to consensus).
 Writes the corrected train json (all synthetic images untouched) and a corrections log (csv),
 which is the record for AGENT.md. Test annotations are never touched by this tool.
 Usage: python tools/apply_label_corrections.py --decisions decisions.json \
@@ -22,14 +27,39 @@ import os
 PARTNER = {1: 2, 2: 1, 3: 4, 4: 3, 5: 6, 6: 5, 7: 8, 8: 7, 9: 10, 10: 9, 11: 12, 12: 11, 13: 14, 14: 13, 15: 16, 16: 15}
 
 
+def resolve_swaps(dec, cands):
+    import numpy as np
+    acc = {(d['image_id'], d['joint'], d['kind']) for d in dec if d['decision'] == 'accept'}
+    out = []
+    for d in dec:
+        d = dict(d)
+        if d['decision'] == 'accept' and not d['xy'] and d['kind'] in ('swap', 'far'):
+            c = cands[d['image_id']]
+            g = np.array(c['gt'])
+            cons = np.mean([np.array(v) for v in c['pred'].values() if v is not None], 0)
+            j, p = d['joint'], PARTNER[d['joint']]
+            if d['kind'] == 'swap':
+                mutual = (d['image_id'], p, 'swap') in acc or                     np.linalg.norm(g[p, :2] - cons[j, :2]) < np.linalg.norm(g[p, :2] - cons[p, :2])
+                partner_far = (d['image_id'], p, 'far') in acc
+                if partner_far or not mutual:
+                    d['xy'] = f'{cons[j, 0]:.1f},{cons[j, 1]:.1f}'
+                    d['reason'] = (d.get('reason') or '') + ('[swap resolved: partner also wrong -> consensus]'
+                                                             if partner_far else '[swap resolved: duplicate point -> consensus]')
+        out.append(d)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--decisions', required=True)
     ap.add_argument('--train', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--log')
+    ap.add_argument('--candidates', help='candidates.json: resolve accepted swaps (duplicate vs mutual)')
     args = ap.parse_args()
     dec = [d for d in json.load(open(args.decisions)) if d['decision'] in ('accept', 'edit') and d['joint'] >= 0]
+    if args.candidates:
+        dec = resolve_swaps(dec, {c['image_id']: c for c in json.load(open(args.candidates))})
     data = json.load(open(args.train))
     by_img = {a['image_id']: a for a in data['annotations']}
     log = []
@@ -42,7 +72,7 @@ def main():
         j = d['joint']
         old = kp[3 * j:3 * j + 3]
         xy = d['xy'] or (d['proposal_xy'] if d['decision'] == 'accept' else '')
-        if d['kind'] == 'swap' and d['decision'] == 'accept':
+        if d['kind'] == 'swap' and d['decision'] == 'accept' and not d['xy']:
             pair = tuple(sorted((j, PARTNER[j])))
             if (a['image_id'], pair) in swapped:
                 continue
