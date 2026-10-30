@@ -287,3 +287,11 @@ Decision rules:
 - **If it advances:** frozen confirmation. Fine-tune on all 1200 training images, 2 seeds, and score Test400 / Test400_indep / Test100 with the bootstrap, alone and in the ensemble.
 
 **Round 13 result (2026-10-30): primary no advance.** H20 + S2-1b-ft pooled 96.05 vs 95.94 (+0.10, 2/5 folds). Fine-tuned S2-1b alone (96.10) matches the two-model ensemble, but neither clears the bar. Frozen Test500 confirmation not run (rule). Details in AGENT.md.
+
+### Round 13b (2026-10-30): can one fine-tuned Sapiens2 replace the two-model ensemble? (exploratory, pre-registered before any Test500 score)
+
+- **Runs:** S2-1b fine-tuned on all 1200 training images (1000 synthetic + 200 real, original labels), exactly the round 13 recipe (10 epochs, LR x0.1 from epoch 8), seeds 1 and 2, `--save`. A100 80GB. Predictions on Test500 with GT boxes and flip test (`scripts/sapiens2_ft.sbatch full-s2ft-s<seed> all`).
+- **Reference:** the recommended system, D-soup + S2-1b-zs (`output/audit12/results/ens-soup-s2-1b.json`; Test400 94.0).
+- **Criterion (non-inferiority, margin 0.5 AP):** "can replace" if, for **both** seeds, the paired source-group bootstrap 95% CI lower bound of AP(S2-ft) - AP(D-soup + S2-zs) on Test400 is above -0.5. Test400_indep and Test100 reported, not decisive.
+- **Also reported:** S2-ft vs H20-s1 and vs S2-1b-zs; S2-ft + D-soup ensemble (0.5/0.5), descriptive only.
+- Caveat: Test400 has been used to choose methods before; this is evidence, not a clean confirmation.
