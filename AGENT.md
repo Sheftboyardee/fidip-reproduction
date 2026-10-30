@@ -1283,3 +1283,31 @@ Caveat: the corrected coordinates come partly from cv-h20's own OOF predictions,
   - Test400_indep +1.2 to +1.3;
   - Test100 unchanged.
 - Recommended system: D-soup-h20 + Sapiens2-1b ensemble (MANIFEST.md).
+
+## Round 13 (2026-10-29/30): Sapiens2-1b fine-tune on the CV folds
+
+- Protocol pre-registered in PLAN.md (commit 54bdb1a) before any fine-tuned score was seen.
+- First submitted on H200 (11476656..79), cancelled unstarted after ~1 day queued (116 pending H200 jobs); resubmitted on A100 80GB (`--gres=gpu:a100:1 --constraint=a100@80g --time=02:30:00`), jobs 11483756 11483758 11483798 11483802 11483803.
+- All 5 folds completed 10 epochs on d1029: ~480 s/epoch, 1 h 21-27 m per job. Final train loss ~0.00098-0.00100; held-out keypoint score mean 0.94-0.955.
+
+Results (pooled OOF AP on real200; `cv_score.py`, ensembles scored per fold with the same `ap()`):
+
+| System | Original labels (folds) | Corrected labels |
+|---|---|---|
+| cv-h20 | 94.39 (92.9 / 94.0 / 95.2 / 94.7 / 95.0) | 94.95 |
+| S2-1b-zs | 94.76 (93.3 / 95.6 / 95.1 / 95.3 / 94.1) | 94.88 |
+| **S2-1b-ft (cv-s2ft)** | **96.10** (94.3 / 96.3 / 97.3 / 96.5 / 96.2) | **96.41** |
+| H20 + S2-1b-zs (current best) | 95.94 (94.3 / 96.3 / 96.1 / 96.9 / 95.7) | 96.38 |
+| H20 + S2-1b-ft | 96.05 (94.3 / 96.1 / 96.9 / 96.6 / 96.3) | 96.40 |
+| S2-1b-zs + S2-1b-ft (post hoc) | 96.16 | -- |
+
+Decision:
+- **Primary (H20 + S2-ft vs H20 + S2-zs): +0.10, 2/5 folds -> no advance.** On corrected labels +0.02, 3/5.
+- Secondary: S2-ft vs cv-h20 +1.71 (5/5); vs S2-zs +1.34 (5/5); vs the current best ensemble +0.16 (3/5).
+- Frozen confirmation on Test500 not run, per the rule.
+
+Interpretation:
+- Fine-tuning moves Sapiens2-1b from 94.8 to 96.1, and a single fine-tuned model now reaches the two-model ensemble's level.
+- Adding H20 to the fine-tuned model no longer helps (96.05 vs 96.10): the complementarity that made the zero-shot ensemble work is absorbed by fine-tuning.
+- The CV ceiling around 96 on 200 images looks like the binding limit; the differences among the top three systems are ~0.1-0.2 AP, well inside fold noise.
+- Practical note (not a pre-registered claim): S2-1b-ft would replace a two-model ensemble with one model at equal CV accuracy, but that is unconfirmed on Test500.

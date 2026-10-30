@@ -141,6 +141,7 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
     - `scripts/sapiens2_zeroshot.sbatch` runs `tools/test_sapiens2.py` (GT boxes, Goliath-308 -> COCO-17) for 0.4b/1b.
     - Outputs go to `output/audit12/sapiens2/`.
     - `scripts/ensemble_kpts.py --a x.json --b y.json --out ens.json` averages two prediction files.
+    - Fine-tune: `sbatch -J fidip-<tag>-f<k> scripts/sapiens2_ft.sbatch <tag> <k> --epochs 10` (`tools/train_sapiens2.py`; 1b needs ~38 GB). Default asks for H200 (~4 min/epoch); when the H200 queue is long, override with `--gres=gpu:a100:1 --constraint=a100@80g --time=02:30:00` (~8 min/epoch).
 
 ## Common operations (cluster)
 
@@ -181,6 +182,7 @@ jobs until resume is fixed.
 | round 10 (C2 + B on ViTPose++-H) | c2-ld{95,90}-lr1e-5-s1, c2-ld90-lr3e-5-s1 (+ eval500-C2 11400473); b-rf{17,50,75,100}-s1 (+ eval500-B 11401502) | 11400434 11400442 11400455 11400506 11400510 11400521 11400537 | all COMPLETED (B eval 11401502). Null: Test400 92.6-93.0 | `output/<tag>` |
 | round 11 (B2 confirm + 384x288) | b-rf100-s2 (+ eval500-B2 11410741); d3-h384-lr1e-5-s1 chained p1/p2/p3 (+ eval500-D3 11410743) | 11410487 11410716 11410725 11410732 | all COMPLETED (p1, p2 TIMEOUT by design, resumed). Null: real-only 92.9; 384x288 92.7 | `output/<tag>` |
 | round 12 (CV + E2/E3/E4) | cv-h20-f0..4, cv-rs-f0..4, cv-mt-f0..4 (+p2/p3), sapiens2-setup/zs, r12-prep | 11422061-11422084, 11422319-11424695, 11424797-11434194, 11422150 11424809 11422557 | all COMPLETED. CV: h20 94.39, rs 94.03, mt 93.61; S2-1b zs 94.76; **H20+S2-1b ensemble 95.94, Test400 93.8** | `output/cv-*-f<k>`, `output/audit12/` |
+| round 13 (S2-1b fine-tune CV) | cv-s2ft-f0..4 (H200 11476656-79 cancelled unstarted) | 11483756 11483758 11483798 11483802 11483803 | all COMPLETED (A100 80GB). S2-1b-ft 96.10; H20+S2-ft 96.05 vs 95.94 -> no advance | `output/cv-s2ft-f<k>` |
 
 ## Guardrails
 

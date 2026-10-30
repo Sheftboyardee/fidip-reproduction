@@ -205,6 +205,7 @@ Scores:
 | D-soup + S2-1b | **94.0** | 94.0 | 95.4 |
 
 - Grouped-CV (200 real images, out-of-fold): 95.94 vs 94.39 for H20 alone.
+- Round 13: fine-tuned S2-1b alone 96.10, H20 + S2-1b-ft 96.05 (no advance over 95.94; recommended system unchanged).
 
 Round 12 artifacts:
 
@@ -218,4 +219,5 @@ Round 12 artifacts:
 | | mt/ (eligible boxes) |
 | Explorer | `output/cv-{h20,rs,mt}-f<k>/` (fold checkpoints, ~3.6 GB each) |
 | | `output/audit12/sapiens2/` |
+| | `output/cv-s2ft-f<k>/syrip/sapiens2/1b/` (round 13 fine-tune: train.log + held-out predictions; weights not saved) |
 | | HF cache with sapiens2-pose-{0.4b,1b} |

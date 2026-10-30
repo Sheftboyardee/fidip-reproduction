@@ -285,3 +285,5 @@ Decision rules:
   Advance if pooled >= +0.5 **and** better in >= 4/5 folds.
 - **Secondary (reported, not decisive):** S2-1b-ft alone vs S2-1b-zs (94.76) and vs cv-h20 (94.39); the same numbers on the corrected labels.
 - **If it advances:** frozen confirmation. Fine-tune on all 1200 training images, 2 seeds, and score Test400 / Test400_indep / Test100 with the bootstrap, alone and in the ensemble.
+
+**Round 13 result (2026-10-30): primary no advance.** H20 + S2-1b-ft pooled 96.05 vs 95.94 (+0.10, 2/5 folds). Fine-tuned S2-1b alone (96.10) matches the two-model ensemble, but neither clears the bar. Frozen Test500 confirmation not run (rule). Details in AGENT.md.
