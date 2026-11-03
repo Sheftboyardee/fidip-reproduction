@@ -1311,3 +1311,31 @@ Interpretation:
 - Adding H20 to the fine-tuned model no longer helps (96.05 vs 96.10): the complementarity that made the zero-shot ensemble work is absorbed by fine-tuning.
 - The CV ceiling around 96 on 200 images looks like the binding limit; the differences among the top three systems are ~0.1-0.2 AP, well inside fold noise.
 - Practical note (not a pre-registered claim): S2-1b-ft would replace a two-model ensemble with one model at equal CV accuracy, but that is unconfirmed on Test500.
+
+## Round 13b (2026-10-30 .. 11-03): can one fine-tuned Sapiens2 replace the two-model ensemble?
+
+- Exploratory check, pre-registered in PLAN.md (commit 98746f8) before any Test500 score: non-inferiority, margin 0.5 AP, Test400, both seeds.
+- Runs: S2-1b fine-tuned on all 1200 training images, round 13 recipe, seeds 1/2 (jobs 11504452 / 11504476, A100 80GB, d1029, 1 h 26 m each, 150 steps/epoch, ~497 s/epoch). Final train loss 0.00095 / 0.00093. Weights saved (`--save`, ~3 GB bf16).
+- `scripts/sapiens2_ft.sbatch` gained `K=all` (full training set, predictions on Test500).
+
+Paired source-group bootstrap (2000 resamples; `scripts/bootstrap_ap.py`; full output in `output/audit12/results/r13b_bootstrap.txt`):
+
+| Candidate vs reference | Test400 | Test400_indep | Test400_linked | Test100 |
+|---|---|---|---|---|
+| S2-ft-s1 vs D-soup + S2-zs (94.0 / 94.0 / 94.3 / 95.4) | 94.2, **+0.20 [-0.10, +0.67]** | +0.29 [+0.06, +0.79] | +0.24 [-0.62, +0.88] | -0.06 [-1.32, +0.96] |
+| S2-ft-s2 vs D-soup + S2-zs | 94.3, **+0.25 [-0.15, +0.88]** | +0.37 [-0.14, +1.14] | +0.32 [-0.48, +0.96] | -0.13 [-1.23, +0.70] |
+| S2-ft-s1 vs H20-s1 (92.7) | +1.50 [+0.87, +2.13] | +1.68 [+1.01, +2.32] | +1.41 | +0.29 (n.s.) |
+| S2-ft-s2 vs H20-s1 | +1.55 [+0.92, +2.27] | +1.76 [+0.97, +2.75] | +1.50 | +0.22 (n.s.) |
+| S2-ft-s1 vs S2-1b-zs (92.1) | +2.16 [+1.40, +2.75] | +1.74 | +2.95 | +1.98 [-0.02, +3.60] |
+| S2-ft-s2 vs S2-1b-zs | +2.21 [+1.50, +2.91] | +1.82 | +3.03 | +1.91 [+0.14, +3.32] |
+| D-soup + S2-ft-s1 vs D-soup + S2-zs (descriptive) | 94.2, +0.21 [-0.08, +0.58] | +0.06 | +0.53 | -0.11 |
+| D-soup + S2-ft-s2 vs D-soup + S2-zs (descriptive) | 94.0, -0.04 [-0.19, +0.51] | +0.14 | +0.12 | +0.30 |
+
+Decision:
+- **Non-inferiority passes for both seeds** (Test400 CI lower bounds -0.10 and -0.15, margin -0.5). One fine-tuned Sapiens2-1b can replace the D-soup + zero-shot ensemble.
+- It is not shown to be better: both Test400 CIs include 0. Seeds agree to 0.05 AP.
+- Consistent with the CV result (96.10 alone vs 95.94 ensemble), and with H20 adding nothing once Sapiens2 is fine-tuned (D-soup + S2-ft is not better than S2-ft alone).
+- Against the earlier single models the gain is clear: +1.5 over H20 and +2.2 over zero-shot Sapiens2 on Test400, largest on Test400_indep for H20 (the subset with no train/test source overlap). Test100 differences vs H20 are within noise.
+- Practical effect: one model, one venv, one inference pass instead of two models in two venvs. Cost: 1024x768 input; ~1.4 GPU-h to train on an A100.
+- Caveat: Test400 has been used for method choices before; this is supporting evidence, not a clean confirmation.
+- MANIFEST.md now lists S2-1b-ft (seed 1 or 2) as the recommended system.

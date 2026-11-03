@@ -295,3 +295,5 @@ Decision rules:
 - **Criterion (non-inferiority, margin 0.5 AP):** "can replace" if, for **both** seeds, the paired source-group bootstrap 95% CI lower bound of AP(S2-ft) - AP(D-soup + S2-zs) on Test400 is above -0.5. Test400_indep and Test100 reported, not decisive.
 - **Also reported:** S2-ft vs H20-s1 and vs S2-1b-zs; S2-ft + D-soup ensemble (0.5/0.5), descriptive only.
 - Caveat: Test400 has been used to choose methods before; this is evidence, not a clean confirmation.
+
+**Round 13b result (2026-11-03): passes, S2-1b-ft can replace the ensemble.** Test400 diff vs D-soup + S2-zs: seed 1 +0.20 [-0.10, +0.67], seed 2 +0.25 [-0.15, +0.88]; both lower bounds above -0.5. Not superior (CIs include 0). Details in AGENT.md.

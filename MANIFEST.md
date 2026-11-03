@@ -207,6 +207,22 @@ Scores:
 - Grouped-CV (200 real images, out-of-fold): 95.94 vs 94.39 for H20 alone.
 - Round 13: fine-tuned S2-1b alone 96.10, H20 + S2-1b-ft 96.05 (no advance over 95.94; recommended system unchanged).
 
+**Update 2026-11-03 (round 13b): best single model = Sapiens2-1b fine-tuned on SyRIP; it replaces the two-model ensemble.**
+
+- Checkpoints (Explorer, ~3 GB bf16 each): `~/Infant-Pose-Estimation/output/full-s2ft-s{1,2}/syrip/sapiens2/1b/final_state_bf16.pth`
+  (job 11504452 / 11504476; `scripts/sapiens2_ft.sbatch full-s2ft-s<seed> all --epochs 10 --seed <seed> --save`).
+- Inference: `~/venvs/sapiens2/bin/python tools/test_sapiens2.py --model facebook/sapiens2-pose-1b --checkpoint <pth> --gt <coco json> --images <dir>` (flip test, GT boxes). The reported scores come from the in-process prediction at the end of training; reloading via `--checkpoint` has not yet been run end-to-end.
+- Test500 predictions: `output/audit12/results/full-s2ft-s{1,2}.json` (local, gitignored).
+
+| System | Test400 | Test400_indep | Test100 |
+|---|---|---|---|
+| S2-1b-ft seed 1 | **94.2** | 94.2 | 95.4 |
+| S2-1b-ft seed 2 | **94.3** | 94.3 | 95.3 |
+| D-soup + S2-1b-zs (previous best) | 94.0 | 94.0 | 95.4 |
+
+- Pre-registered non-inferiority (margin 0.5 AP on Test400, both seeds) passed: diff +0.20 [-0.10, +0.67] and +0.25 [-0.15, +0.88].
+- Averaging in D-soup adds nothing (Test400 94.2 / 94.0).
+
 Round 12 artifacts:
 
 | Location | Contents |
