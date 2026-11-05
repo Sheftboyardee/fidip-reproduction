@@ -1339,3 +1339,31 @@ Decision:
 - Practical effect: one model, one venv, one inference pass instead of two models in two venvs. Cost: 1024x768 input; ~1.4 GPU-h to train on an A100.
 - Caveat: Test400 has been used for method choices before; this is supporting evidence, not a clean confirmation.
 - MANIFEST.md now lists S2-1b-ft (seed 1 or 2) as the recommended system.
+
+## 2026-11-05 -- Submission preparation: rubric audit, failure analysis, report
+
+**Asked:** explain submission readiness against the grading rubric, then do the remaining items and start the `.tex` report with the 2-3 strongest visualizations.
+
+Final model vs the released checkpoint (paired source-group bootstrap, `results/report_data/bootstrap_vs_released.txt`):
+
+| | Test100 | Test400 | Test400_indep |
+|---|---|---|---|
+| Seed 1 | +1.75 [-0.04, +3.46] | +3.49 [+2.54, +4.60] | +4.04 [+2.57, +5.15] |
+| Seed 2 | +1.68 [+0.36, +3.18] | +3.54 [+2.66, +4.73] | +4.13 [+2.40, +5.63] |
+
+Failure analysis (`scripts/failure_analysis.py`, aggregates in `results/failure_analysis/`; "missed" = joint similarity below 0.5):
+- Test400 misses: visible joints 2.0% -> 1.1%, occluded joints 36.8% -> 18.4%. Occluded joints are 5% of labelled joints but about half of all misses.
+- Test100 has only 13 of 1700 joints marked occluded (0.8%), which helps explain why it scores higher than Test400.
+- Left/right swapped pairs on Test400: released 43, fine-tuned 23. ViTPose (23) and zero-shot Sapiens2 (22) match that, so this gain comes from the stronger pretrained models.
+- Images with OKS below 0.85 on Test500: 42 -> 21.
+- Seeds agree: per-image OKS correlation 0.99; 21 of 25 worst images shared.
+- The 12 worst images were inspected by eye: 5 crawling or sitting, seen from behind or the side (apparently two scenes); 4 head-first, upside-down or curled; 2 body hidden; 1 label error.
+- **Test label error:** on image 149 the four compared models agree (mean pairwise OKS 0.98) but score about 0.09 against the label. Removing it adds 0.18 to released and about 0.4 to fine-tuned Test400 AP. Test labels were left unchanged.
+
+Report: `report/report.tex`, 9 pages.
+- Figures: paired AP difference vs released with CIs; missed joints by joint and visibility; skeleton-only success and failure examples.
+- The dataviz validator could not run (no Node on this laptop). The figures use palette slots 1 and 2, with marker and line style also carrying identity.
+- **Not committed:** `report/figures/fig_skeletons.pdf` and `report/report.pdf`, because they contain SyRIP label coordinates. Rebuild with `scripts/make_report_figures.py`.
+- While drafting, the round 2 BatchNorm explanation was rechecked: it failed at three seeds (round 3), and the report says so.
+
+Cleanup: README headline, `results/eval500*`, MANIFEST "Final system" section and Sapiens2 environment, SKILL.md stale note, `requirements-sapiens2.txt`, training logs in `results/logs/`.

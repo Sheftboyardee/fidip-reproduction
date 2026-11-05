@@ -1,0 +1,11 @@
+model,subset,pairs,swapped_pairs,images_with_swap,images
+released,test100,800,14,8,100
+released,test400,3193,43,30,400
+h20,test100,800,6,4,100
+h20,test400,3193,23,15,400
+s2zs,test100,800,9,7,100
+s2zs,test400,3193,22,13,400
+s2ft-s1,test100,800,6,4,100
+s2ft-s1,test400,3193,23,15,400
+s2ft-s2,test100,800,6,4,100
+s2ft-s2,test400,3193,23,14,400

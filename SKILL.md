@@ -6,7 +6,6 @@ description: Operate the FiDIP (infant pose estimation) project locally and on N
 # FiDIP Project Ops
 
 Adapted from the course template (`../EECE-7398-Machine-Learning-with-Small-Data/SKILL.md`).
-Placeholders marked `TODO` get filled in once cluster access is set up.
 
 ## Local machine (development / quick eval)
 
@@ -141,6 +140,9 @@ node, e.g. inside an sbatch job; `quota` itself fails on VAST):
     - `scripts/sapiens2_zeroshot.sbatch` runs `tools/test_sapiens2.py` (GT boxes, Goliath-308 -> COCO-17) for 0.4b/1b.
     - Outputs go to `output/audit12/sapiens2/`.
     - `scripts/ensemble_kpts.py --a x.json --b y.json --out ens.json` averages two prediction files.
+    - `scripts/sapiens2_eval.sbatch <tag>` reloads saved weights and predicts Test500.
+    - `scripts/failure_analysis.py` writes per-joint, visibility, posture and left/right tables to `results/failure_analysis/`.
+    - `scripts/make_report_figures.py` rebuilds `report/figures/`. It needs the private predictions in `output/`.
     - Fine-tune: `sbatch -J fidip-<tag>-f<k> scripts/sapiens2_ft.sbatch <tag> <k> --epochs 10` (`tools/train_sapiens2.py`; 1b needs ~38 GB). Default asks for H200 (~4 min/epoch); when the H200 queue is long, override with `--gres=gpu:a100:1 --constraint=a100@80g --time=02:30:00` (~8 min/epoch).
 
 ## Common operations (cluster)

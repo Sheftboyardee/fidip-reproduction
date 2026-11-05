@@ -1,0 +1,48 @@
+=== s1 vs ens-soup-s2-1b
+subset=all n_img=500 n_groups=132 ens-soup-s2-1b=0.9407 s2ft-s1=0.9433 diff=0.0025 ci_lo=-0.0026 ci_hi=0.0056 p_le0=0.1835
+subset=test400 n_img=400 n_groups=88 ens-soup-s2-1b=0.9402 s2ft-s1=0.9422 diff=0.0020 ci_lo=-0.0010 ci_hi=0.0067 p_le0=0.0720
+subset=test100 n_img=100 n_groups=66 ens-soup-s2-1b=0.9541 s2ft-s1=0.9536 diff=-0.0006 ci_lo=-0.0132 ci_hi=0.0096 p_le0=0.6060
+subset=test400_linked n_img=147 n_groups=23 ens-soup-s2-1b=0.9432 s2ft-s1=0.9456 diff=0.0024 ci_lo=-0.0062 ci_hi=0.0088 p_le0=0.3100
+subset=test400_indep n_img=253 n_groups=66 ens-soup-s2-1b=0.9395 s2ft-s1=0.9424 diff=0.0029 ci_lo=0.0006 ci_hi=0.0079 p_le0=0.0160
+=== s1 vs vit2-h20-lr1e-5-s1-final
+subset=all n_img=500 n_groups=132 vit2-h20-lr1e-5-s1-final=0.9313 s2ft-s1=0.9433 diff=0.0120 ci_lo=0.0051 ci_hi=0.0161 p_le0=0.0015
+subset=test400 n_img=400 n_groups=88 vit2-h20-lr1e-5-s1-final=0.9272 s2ft-s1=0.9422 diff=0.0150 ci_lo=0.0087 ci_hi=0.0213 p_le0=0.0000
+subset=test100 n_img=100 n_groups=66 vit2-h20-lr1e-5-s1-final=0.9507 s2ft-s1=0.9536 diff=0.0029 ci_lo=-0.0082 ci_hi=0.0129 p_le0=0.3085
+subset=test400_linked n_img=147 n_groups=23 vit2-h20-lr1e-5-s1-final=0.9315 s2ft-s1=0.9456 diff=0.0141 ci_lo=0.0035 ci_hi=0.0261 p_le0=0.0035
+subset=test400_indep n_img=253 n_groups=66 vit2-h20-lr1e-5-s1-final=0.9256 s2ft-s1=0.9424 diff=0.0168 ci_lo=0.0101 ci_hi=0.0232 p_le0=0.0000
+=== s1 vs sapiens2-1b-zs
+subset=all n_img=500 n_groups=132 sapiens2-1b-zs=0.9219 s2ft-s1=0.9433 diff=0.0214 ci_lo=0.0148 ci_hi=0.0266 p_le0=0.0000
+subset=test400 n_img=400 n_groups=88 sapiens2-1b-zs=0.9206 s2ft-s1=0.9422 diff=0.0216 ci_lo=0.0140 ci_hi=0.0275 p_le0=0.0000
+subset=test100 n_img=100 n_groups=66 sapiens2-1b-zs=0.9338 s2ft-s1=0.9536 diff=0.0198 ci_lo=-0.0002 ci_hi=0.0360 p_le0=0.0260
+subset=test400_linked n_img=147 n_groups=23 sapiens2-1b-zs=0.9161 s2ft-s1=0.9456 diff=0.0295 ci_lo=0.0198 ci_hi=0.0366 p_le0=0.0000
+subset=test400_indep n_img=253 n_groups=66 sapiens2-1b-zs=0.9250 s2ft-s1=0.9424 diff=0.0174 ci_lo=0.0056 ci_hi=0.0256 p_le0=0.0015
+=== ens-soup-s2ft-s1 vs ens-soup-s2-1b
+subset=all n_img=500 n_groups=132 ens-soup-s2-1b=0.9407 ens-soup-s2ft-s1=0.9426 diff=0.0018 ci_lo=-0.0017 ci_hi=0.0053 p_le0=0.1435
+subset=test400 n_img=400 n_groups=88 ens-soup-s2-1b=0.9402 ens-soup-s2ft-s1=0.9423 diff=0.0021 ci_lo=-0.0008 ci_hi=0.0058 p_le0=0.0735
+subset=test100 n_img=100 n_groups=66 ens-soup-s2-1b=0.9541 ens-soup-s2ft-s1=0.9530 diff=-0.0011 ci_lo=-0.0083 ci_hi=0.0059 p_le0=0.6200
+subset=test400_linked n_img=147 n_groups=23 ens-soup-s2-1b=0.9432 ens-soup-s2ft-s1=0.9486 diff=0.0053 ci_lo=-0.0006 ci_hi=0.0093 p_le0=0.0330
+subset=test400_indep n_img=253 n_groups=66 ens-soup-s2-1b=0.9395 ens-soup-s2ft-s1=0.9401 diff=0.0006 ci_lo=-0.0030 ci_hi=0.0052 p_le0=0.2855
+=== s2 vs ens-soup-s2-1b
+subset=all n_img=500 n_groups=132 ens-soup-s2-1b=0.9407 s2ft-s2=0.9444 diff=0.0037 ci_lo=-0.0032 ci_hi=0.0076 p_le0=0.1645
+subset=test400 n_img=400 n_groups=88 ens-soup-s2-1b=0.9402 s2ft-s2=0.9427 diff=0.0025 ci_lo=-0.0015 ci_hi=0.0088 p_le0=0.0780
+subset=test100 n_img=100 n_groups=66 ens-soup-s2-1b=0.9541 s2ft-s2=0.9529 diff=-0.0013 ci_lo=-0.0123 ci_hi=0.0070 p_le0=0.6880
+subset=test400_linked n_img=147 n_groups=23 ens-soup-s2-1b=0.9432 s2ft-s2=0.9464 diff=0.0032 ci_lo=-0.0048 ci_hi=0.0096 p_le0=0.2645
+subset=test400_indep n_img=253 n_groups=66 ens-soup-s2-1b=0.9395 s2ft-s2=0.9432 diff=0.0037 ci_lo=-0.0014 ci_hi=0.0114 p_le0=0.0520
+=== s2 vs vit2-h20-lr1e-5-s1-final
+subset=all n_img=500 n_groups=132 vit2-h20-lr1e-5-s1-final=0.9313 s2ft-s2=0.9444 diff=0.0132 ci_lo=0.0051 ci_hi=0.0183 p_le0=0.0010
+subset=test400 n_img=400 n_groups=88 vit2-h20-lr1e-5-s1-final=0.9272 s2ft-s2=0.9427 diff=0.0155 ci_lo=0.0092 ci_hi=0.0227 p_le0=0.0000
+subset=test100 n_img=100 n_groups=66 vit2-h20-lr1e-5-s1-final=0.9507 s2ft-s2=0.9529 diff=0.0022 ci_lo=-0.0071 ci_hi=0.0112 p_le0=0.3380
+subset=test400_linked n_img=147 n_groups=23 vit2-h20-lr1e-5-s1-final=0.9315 s2ft-s2=0.9464 diff=0.0150 ci_lo=0.0046 ci_hi=0.0251 p_le0=0.0030
+subset=test400_indep n_img=253 n_groups=66 vit2-h20-lr1e-5-s1-final=0.9256 s2ft-s2=0.9432 diff=0.0176 ci_lo=0.0097 ci_hi=0.0275 p_le0=0.0000
+=== s2 vs sapiens2-1b-zs
+subset=all n_img=500 n_groups=132 sapiens2-1b-zs=0.9219 s2ft-s2=0.9444 diff=0.0225 ci_lo=0.0152 ci_hi=0.0274 p_le0=0.0000
+subset=test400 n_img=400 n_groups=88 sapiens2-1b-zs=0.9206 s2ft-s2=0.9427 diff=0.0221 ci_lo=0.0150 ci_hi=0.0291 p_le0=0.0000
+subset=test100 n_img=100 n_groups=66 sapiens2-1b-zs=0.9338 s2ft-s2=0.9529 diff=0.0191 ci_lo=0.0014 ci_hi=0.0332 p_le0=0.0135
+subset=test400_linked n_img=147 n_groups=23 sapiens2-1b-zs=0.9161 s2ft-s2=0.9464 diff=0.0303 ci_lo=0.0191 ci_hi=0.0384 p_le0=0.0000
+subset=test400_indep n_img=253 n_groups=66 sapiens2-1b-zs=0.9250 s2ft-s2=0.9432 diff=0.0182 ci_lo=0.0089 ci_hi=0.0269 p_le0=0.0000
+=== ens-soup-s2ft-s2 vs ens-soup-s2-1b
+subset=all n_img=500 n_groups=132 ens-soup-s2-1b=0.9407 ens-soup-s2ft-s2=0.9429 diff=0.0022 ci_lo=-0.0018 ci_hi=0.0058 p_le0=0.1325
+subset=test400 n_img=400 n_groups=88 ens-soup-s2-1b=0.9402 ens-soup-s2ft-s2=0.9398 diff=-0.0004 ci_lo=-0.0019 ci_hi=0.0051 p_le0=0.1845
+subset=test100 n_img=100 n_groups=66 ens-soup-s2-1b=0.9541 ens-soup-s2ft-s2=0.9572 diff=0.0030 ci_lo=-0.0046 ci_hi=0.0106 p_le0=0.2350
+subset=test400_linked n_img=147 n_groups=23 ens-soup-s2-1b=0.9432 ens-soup-s2ft-s2=0.9444 diff=0.0012 ci_lo=-0.0049 ci_hi=0.0061 p_le0=0.3015
+subset=test400_indep n_img=253 n_groups=66 ens-soup-s2-1b=0.9395 ens-soup-s2ft-s2=0.9409 diff=0.0014 ci_lo=-0.0019 ci_hi=0.0066 p_le0=0.1375

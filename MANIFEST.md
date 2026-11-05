@@ -3,6 +3,31 @@
 Everything needed to reproduce the reported results. Paths are relative to the repo root unless
 noted.
 
+## Final system (start here)
+
+Best system: **Sapiens2-1B fine-tuned on SyRIP** (rounds 13 and 13b). The published baseline is DarkPose + FiDIP, Test100 AP 93.6.
+
+| Item | Value |
+|---|---|
+| Result | Test100 AP 95.4 / 95.3, Test400 AP 94.2 / 94.3 (seeds 1 / 2); released FiDIP 93.6 / 90.7 |
+| Conditions | Official SyRIP split, COCO keypoint AP, GT boxes, flip test, final-epoch checkpoint |
+| Jobs | 11504452 (seed 1), 11504476 (seed 2) |
+| Checkpoints | Explorer `~/Infant-Pose-Estimation/output/full-s2ft-s{1,2}/syrip/sapiens2/1b/final_state_bf16.pth` |
+| Environment | `~/venvs/sapiens2` from `scripts/sapiens2_setup.sbatch`; exact versions in `requirements-sapiens2.txt` |
+| Scores | `results/eval500.csv`, `results/report_data/` |
+| Training logs | `results/logs/` |
+| Failure analysis | `results/failure_analysis/` (`scripts/failure_analysis.py`) |
+| Report | `report/report.tex`; figures from `scripts/make_report_figures.py` |
+
+To reproduce:
+1. Build the environment: `sbatch scripts/sapiens2_setup.sbatch`.
+2. Train: `sbatch -J fidip-full-s2ft-s1 --gres=gpu:a100:1 --constraint=a100@80g --time=02:30:00 scripts/sapiens2_ft.sbatch full-s2ft-s1 all --epochs 10 --seed 1 --save`.
+   Predictions on Test500 land in `output/full-s2ft-s1/syrip/sapiens2/1b/results/`.
+3. Check reloading the saved weights: `sbatch -J fidip-s2eval-s1 scripts/sapiens2_eval.sbatch full-s2ft-s1`.
+4. Score: `python scripts/bootstrap_ap.py --a <released.json> --b <predictions.json> --tag-a released --tag-b s2ft-s1`.
+
+Later sections are a dated history. "Final reported numbers (2026-10-23)" and the later updates below were each the best result at that date.
+
 ## Code
 
 | Item | Source |
@@ -15,6 +40,7 @@ noted.
 |---|---|---|
 | Laptop (Win11, RTX 4060 8GB) | conda `fidip` | Python 3.12.15, torch 2.3.1+cu121, torchvision 0.18.1, numpy 1.26.4; full pins in `requirements-win.txt` |
 | Explorer (`sheft.n`) | venv `~/venvs/fidip` | Python 3.12.15 (uv), torch 2.3.1+cu121, numpy 1.26.4; pins in `requirements-explorer.txt` (on cluster) |
+| Explorer (`sheft.n`) | venv `~/venvs/sapiens2` | Python 3.12.15, torch 2.7.1+cu126, transformers 5.21.0; pins in `requirements-sapiens2.txt` |
 
 ## Datasets
 
@@ -144,7 +170,7 @@ All checkpoint scores on these sets: `results/eval500.csv`; summary `results/eva
 | 2026-10-27 round11 B2 b-rf100-s2 (job 11410487; eval 11410741) | H20 recipe + `TRAIN.REAL_FRACTION 1.0`, second seed | `output/b-rf100-s2/.../final_state.pth` | 94.4 | -- | -- | -- | Test400 final 92.9; real-only 2-seed 92.8 ± 0.1 = baseline |
 | 2026-10-27 round11 D3 d3-h384-lr1e-5-s1 (jobs 11410716/11410725/11410732 chained; eval 11410743) | `vitpose_plus_384x288_infant.yaml`, H20 recipe + `TRAIN.GRAD_CKPT True` | `output/d3-h384-lr1e-5-s1/syrip/adaptive_pose_vitpose/vitpose_plus_384x288_infant/final_state.pth` | 95.0 | -- | -- | -- | Test400 final 92.7 (best 92.8): null |
 
-**Final reported numbers (2026-10-23):**
+**Reported numbers at 2026-10-23 (superseded; see "Final system" at the top):**
 - Reproduction of the paper: released `models/hrnet_fidip.pth` -> Test100 AP 93.6 (exact match; laptop + Explorer job 10929307).
 - Best model we trained: `ft40-s1` (job 11333089), `output/ft40-s1/syrip/adaptive_pose_hrnet/w48_384x288_adam_lr1e-3_infant/final_state.pth` on Explorer: Test400 90.3, Test100 92.4 (final epoch). Recipe mean over 2 seeds: Test400 90.2 ± 0.2.
 - All checkpoint scores: `results/eval500.csv`; summary table: `results/eval500_summary.md`.

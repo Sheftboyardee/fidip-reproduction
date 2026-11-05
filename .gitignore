@@ -69,3 +69,13 @@ eval500/
 # trailing slash do not match symlinks)
 /output
 /eval500
+
+# report: build files; fig_skeletons and the PDF contain SyRIP label coordinates
+report/*.aux
+report/*.log
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/report.pdf
+report/figures/fig_skeletons.pdf

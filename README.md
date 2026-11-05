@@ -4,9 +4,12 @@
 > Start with [`AGENT.md`](AGENT.md) (research log), [`MANIFEST.md`](MANIFEST.md) (data, checkpoints,
 > final numbers) and [`SKILL.md`](SKILL.md) (how runs are launched on the Explorer cluster).
 > Result tables: [`results/eval500_summary.md`](results/eval500_summary.md).
+> Report: [`report/report.tex`](report/report.tex).
 > Headline: the released FiDIP model reproduces exactly (Test100 AP 93.6) and the fine-tune baseline
-> reproduces (92.7), but FiDIP's gain over fine-tuning did not reproduce when retraining with this code;
-> best retrained recipe is 40-epoch fine-tuning (held-out Test400 AP 90.2 vs 90.7 for the released model).
+> reproduces (92.7), but FiDIP's gain over fine-tuning did not reproduce when retraining with this code.
+> Best system: Sapiens2-1B fine-tuned on SyRIP, Test100 AP 95.4 / 95.3 and Test400 AP 94.2 / 94.3 over two seeds
+> (released FiDIP: 93.6 / 90.7), same split, ground-truth boxes, flip test, final-epoch checkpoints.
+> To reproduce it, start at "Final system" in [`MANIFEST.md`](MANIFEST.md).
 > Changes vs upstream: Windows compatibility (`lib/nms/nms.py`, `lib/dataset/syrip.py`), per-run loss
 > curves, opt-in `TRAIN.ADV_LOSS` / `TRAIN.PRE_BN_FREEZE` options, SLURM scripts in `scripts/`.
 > The original README follows unchanged.

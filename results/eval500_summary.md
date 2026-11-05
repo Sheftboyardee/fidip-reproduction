@@ -107,3 +107,14 @@ Test400: no difference, so synthetic data adds nothing measurable on held-out in
 | ViTPose++-H at 384x288 | **92.7** | 92.8 | 95.0 | 95.5 |
 
 Zero-shot at 384x288 (interpolated position embeddings): Test100 91.3 vs 92.7 at 256x192. Null: below the +0.3 screen, so no second seed. It costs about 2.8x the GPU time.
+
+### Rounds 12-13: Sapiens2-1B (GT boxes, flip test, final checkpoints)
+
+| Setup | n | **Test400** | Test100 |
+|---|---|---|---|
+| Sapiens2-1B zero-shot | 1 | 92.1 | 93.4 |
+| D-soup-h20 + Sapiens2-1B zero-shot (0.5/0.5 keypoint average) | 1 | 94.0 | 95.4 |
+| **Sapiens2-1B fine-tuned, 10 epochs (final system)** | 2 | **94.2, 94.3** | **95.4, 95.3** |
+| *reference: released hrnet_fidip* | 1 | 90.7 | 93.6 |
+
+Paired bootstrap against the released model: `results/report_data/bootstrap_vs_released.txt`.
