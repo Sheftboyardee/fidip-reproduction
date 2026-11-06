@@ -180,7 +180,7 @@ The two seeds differ by at most 0.1 AP on each set. Their per-image OKS scores c
 \label{sec:failure}
 We analysed Test500 predictions per joint and per image (\repo{scripts/failure\_analysis.py}). A joint counts as \emph{missed} when its COCO similarity score is below 0.5.
 
-\paragraph{No photographs, by choice.} This report deliberately shows no SyRIP photographs. They are images of infants from a password-protected dataset, so failure cases are drawn as skeletons instead. We did inspect the images themselves privately, and the descriptions below come from that inspection. The skeleton figure is also kept out of the public-facing repository because it contains label coordinates. It appears only in the submitted PDF, and \repo{scripts/make\_report\_figures.py} rebuilds it for anyone with SyRIP access.
+\paragraph{No photographs, by choice.} This report deliberately shows no SyRIP photographs. They are images of infants from a password-protected dataset, so failure cases are drawn as skeletons instead. We did inspect the images themselves privately, and the descriptions below come from that inspection. The skeleton figure is also kept out of the repository because it contains label coordinates. It appears only in the submitted PDF, and \repo{scripts/make\_report\_figures.py} rebuilds it for anyone with SyRIP access.
 
 \paragraph{Where the gain comes from.} Figure~\ref{fig:joints} shows that the improvement is broad, and largest at the wrists, knees and ankles. Across Test500, images with OKS below 0.85 fall from 42 to 21. Left/right confusions on Test400 fall from 43 joint pairs to 23, but ViTPose (23) and zero-shot Sapiens2 (22) reach the same level, so that gain comes from stronger pretrained models rather than from fine-tuning.
 
