@@ -1370,3 +1370,9 @@ Cleanup: README headline, `results/eval500*`, MANIFEST "Final system" section an
 
 **User decisions (2026-11-05):** author name set to Nicholas Sheft. Skeleton images stay out of GitHub. No photographs in the report, stated in the report as a deliberate choice.
 - The reload jobs had not started, so the report states that the reload check was not complete. HRNet, DarkPose and RSPose citations were added.
+
+**Reload check (2026-11-05):** both reload jobs finished, and the saved weights reproduce the reported scores.
+- Seed 1 ran on a V100-SXM2 (job 11657669, 32 min). Seed 2 timed out at 60 min on a T4 (job 11657670, no output), then ran on a V100-PCIE (job 11659205, 37 min). The original predictions came from A100s, so small differences were expected.
+- Test100 and Test400 AP changed by about 0.01 or less for both seeds. Pooled Test500 AP changed by -0.09 (seed 1) and +0.01 (seed 2).
+- Median joint movement was 0.06 px. 3 and 2 of 8500 joints moved over 5 px (max 38.8 px), all with confidence below 0.65. The cause of those few moves was not investigated.
+- Numbers are in `results/report_data/reload_check.txt`. The report and MANIFEST now state the result.

@@ -1,0 +1,21 @@
+Reload check, 2026-11-05: Test500 predictions from final_state_bf16.pth (scripts/sapiens2_eval.sbatch)
+compared with the end-of-training predictions (scripts/compare_reload.py, scripts/bootstrap_ap.py --n 2000).
+Original predictions: A100. Reload: seed 1 V100-SXM2 (job 11657669), seed 2 V100-PCIE (job 11659205).
+
+AP, original -> reload
+subset          seed 1            seed 2
+all (500)       0.9433 -> 0.9424  0.9444 -> 0.9445
+test100         0.9536 -> 0.9535  0.9529 -> 0.9529
+test400         0.9422 -> 0.9421  0.9427 -> 0.9427
+test400_indep   0.9424 -> 0.9424  0.9432 -> 0.9433
+test400_linked  0.9456 -> 0.9457  0.9464 -> 0.9466
+
+Joint movement in pixels (8500 joints per seed)
+                seed 1   seed 2
+median          0.063    0.060
+mean            0.115    0.102
+p99             0.720    0.682
+max             38.790   13.587
+over 1 px       48       36
+over 5 px       3        2
+confidence of joints over 5 px: 0.29-0.63 (seed 1), 0.52-0.59 (seed 2)

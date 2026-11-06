@@ -23,7 +23,7 @@ To reproduce:
 1. Build the environment: `sbatch scripts/sapiens2_setup.sbatch`.
 2. Train: `sbatch -J fidip-full-s2ft-s1 --gres=gpu:a100:1 --constraint=a100@80g --time=02:30:00 scripts/sapiens2_ft.sbatch full-s2ft-s1 all --epochs 10 --seed 1 --save`.
    Predictions on Test500 land in `output/full-s2ft-s1/syrip/sapiens2/1b/results/`.
-3. Check reloading the saved weights: `sbatch -J fidip-s2eval-s1 scripts/sapiens2_eval.sbatch full-s2ft-s1`.
+3. Check reloading the saved weights: `sbatch -J fidip-s2eval-s1 scripts/sapiens2_eval.sbatch full-s2ft-s1`. Takes 32-37 min on a V100, so raise the 30 min limit if not on an A100; a T4 did not finish in 60 min.
 4. Score: `python scripts/bootstrap_ap.py --a <released.json> --b <predictions.json> --tag-a released --tag-b s2ft-s1`.
 
 Report privacy decisions (Nicholas Sheft, 2026-11-05): the report shows no SyRIP photographs, and `report/figures/fig_skeletons.pdf` and `report/report.pdf` stay out of GitHub because they contain label coordinates. Rebuild them with SyRIP access; `report.tex` shows a placeholder box if the figure is absent.
@@ -239,7 +239,7 @@ Scores:
 
 - Checkpoints (Explorer, ~3 GB bf16 each): `~/Infant-Pose-Estimation/output/full-s2ft-s{1,2}/syrip/sapiens2/1b/final_state_bf16.pth`
   (job 11504452 / 11504476; `scripts/sapiens2_ft.sbatch full-s2ft-s<seed> all --epochs 10 --seed <seed> --save`).
-- Inference: `~/venvs/sapiens2/bin/python tools/test_sapiens2.py --model facebook/sapiens2-pose-1b --checkpoint <pth> --gt <coco json> --images <dir>` (flip test, GT boxes). The reported scores come from the in-process prediction at the end of training; reloading via `--checkpoint` has not yet been run end-to-end.
+- Inference: `~/venvs/sapiens2/bin/python tools/test_sapiens2.py --model facebook/sapiens2-pose-1b --checkpoint <pth> --gt <coco json> --images <dir>` (flip test, GT boxes). The reported scores come from the in-process prediction at the end of training. Reloading via `--checkpoint` was run end-to-end for both seeds on 2026-11-05 and reproduces them (`results/report_data/reload_check.txt`, compared with `scripts/compare_reload.py`).
 - Test500 predictions: `output/audit12/results/full-s2ft-s{1,2}.json` (local, gitignored).
 
 | System | Test400 | Test400_indep | Test100 |
