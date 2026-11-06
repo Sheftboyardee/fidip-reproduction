@@ -10,7 +10,7 @@
 \newcommand{\repo}[1]{\texttt{#1}}
 
 \title{Reproducing and Improving FiDIP for Infant Pose Estimation on SyRIP}
-\author{[Your name] \\ \small FiDIP hands-on exercise, report and repository}
+\author{Nicholas Sheft \\ \small FiDIP hands-on exercise, report and repository}
 \date{November 2026}
 
 \begin{document}
@@ -24,7 +24,7 @@ We reproduced the published FiDIP infant pose estimator and then tried to improv
 \centering\small
 \begin{tabular}{@{}ll@{}}
 \toprule
-Published baseline & DarkPose (HRNet-W48) + FiDIP, Huang et al.\ \cite{fidip}: SyRIP Test100 AP \textbf{93.6} \\
+Published baseline & DarkPose \cite{darkpose} (HRNet-W48 \cite{hrnet}) + FiDIP \cite{fidip}: SyRIP Test100 AP \textbf{93.6} \\
 Our result & Sapiens2-1B fine-tuned: Test100 AP \textbf{95.4} / \textbf{95.3} (seeds 1 / 2) \\
 Paired difference & $+1.75$ [$-0.04$, $+3.46$] and $+1.68$ [$+0.36$, $+3.18$] on Test100; \\
  & $+3.49$ [$+2.54$, $+4.60$] and $+3.54$ [$+2.66$, $+4.73$] on Test400 \\
@@ -129,7 +129,7 @@ Several ideas did not help, and we report them as results:
 \begin{itemize}
   \item \textbf{Recipe changes on ViTPose++-H:} layer-wise learning-rate decay, 384$\times$288 input and different real:synthetic mixes all landed at Test400 92.6--93.0.
   \item \textbf{Synthetic data:} training on the 200 real images alone also gave Test400 92.8 $\pm$ 0.1, though Test100 fell to 94.6 $\pm$ 0.2. For a strong backbone, synthetic data adds nothing measurable on Test400.
-  \item \textbf{Ranking loss (RSPose):} $-0.36$ pooled cross-validation AP, better in 1 of 5 folds.
+  \item \textbf{Ranking loss (RSPose \cite{rspose}):} $-0.36$ pooled cross-validation AP, better in 1 of 5 folds.
   \item \textbf{Mean-teacher self-training} \cite{meanteacher} on the 52 unlabelled images with no link to the test set: $-0.78$, better in 0 of 5 folds.
   \item \textbf{Correcting training labels:} a human-reviewed audit fixed 18 joints in 16 images, and 0 of 20 random control images had errors. The effect was $-0.11$, within noise. Label noise at this level (about 0.6\% of real joints) is not the limit.
 \end{itemize}
@@ -180,6 +180,8 @@ The two seeds differ by at most 0.1 AP on each set. Their per-image OKS scores c
 \label{sec:failure}
 We analysed Test500 predictions per joint and per image (\repo{scripts/failure\_analysis.py}). A joint counts as \emph{missed} when its COCO similarity score is below 0.5.
 
+\paragraph{No photographs, by choice.} This report deliberately shows no SyRIP photographs. They are images of infants from a password-protected dataset, so failure cases are drawn as skeletons instead. We did inspect the images themselves privately, and the descriptions below come from that inspection. The skeleton figure is also kept out of the public-facing repository because it contains label coordinates. It appears only in the submitted PDF, and \repo{scripts/make\_report\_figures.py} rebuilds it for anyone with SyRIP access.
+
 \paragraph{Where the gain comes from.} Figure~\ref{fig:joints} shows that the improvement is broad, and largest at the wrists, knees and ankles. Across Test500, images with OKS below 0.85 fall from 42 to 21. Left/right confusions on Test400 fall from 43 joint pairs to 23, but ViTPose (23) and zero-shot Sapiens2 (22) reach the same level, so that gain comes from stronger pretrained models rather than from fine-tuning.
 
 \begin{figure}[t]
@@ -210,8 +212,8 @@ Sapiens2-1B fine-tuned, seed 2 & 94.5 & 95.2 & 94.5 & 100.0 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{fig_skeletons}
-\caption{Skeletons from six Test500 images. Top row: cases the fine-tuned model corrects. Bottom row: remaining failures. Bottom right: the four different models we compared agree with each other (mean pairwise OKS 0.98) but not with the label (OKS about 0.09), which points to a label error. Photographs are omitted because SyRIP is access-restricted.}
+\IfFileExists{figures/fig_skeletons.pdf}{\includegraphics[width=\linewidth]{fig_skeletons}}{\fbox{\parbox{.95\linewidth}{\centering\small Figure not in the repository: it contains SyRIP label coordinates. See the submitted PDF.}}}
+\caption{Skeletons from six Test500 images. Top row: cases the fine-tuned model corrects. Bottom row: remaining failures. Bottom right: the four different models we compared agree with each other (mean pairwise OKS 0.98) but not with the label (OKS about 0.09), which points to a label error. Photographs are deliberately omitted (see Section~\ref{sec:failure}).}
 \label{fig:skeletons}
 \end{figure}
 
@@ -246,7 +248,7 @@ sbatch -J fidip-full-s2ft-s1 --gres=gpu:a100:1 --constraint=a100@80g \
   --time=02:30:00 scripts/sapiens2_ft.sbatch full-s2ft-s1 all \
   --epochs 10 --seed 1 --save
 \end{verbatim}
-SyRIP is password-protected, so the data, derived annotations and prediction files are not in the repository. Reloading the saved weights is checked by \repo{scripts/sapiens2\_eval.sbatch}. RELOAD-RESULT
+SyRIP is password-protected, so the data, derived annotations and prediction files are not in the repository. The reported scores come from predictions written at the end of each training job, by the trained model in memory. \repo{scripts/sapiens2\_eval.sbatch} repeats the Test500 prediction from the saved weights. That independent reload check had not completed when this report was written.
 
 \section{Use of AI tools}
 This was an agentic project, as the assignment requires. Claude Code worked with the author throughout. It set up environments, wrote and ran code and cluster jobs, kept \repo{AGENT.md}, \repo{SKILL.md} and \repo{MANIFEST.md}, ran the literature search, and drafted this report. The author set the research direction, wrote the round 12 plan, chose which experiments to pursue, adjudicated every flagged label by hand, and reviewed the results.
@@ -261,6 +263,9 @@ AI-assisted work needed checking. Examples logged in \repo{AGENT.md} include a m
 \bibitem{vitposepp} Y.~Xu, J.~Zhang, Q.~Zhang, and D.~Tao. ViTPose++: Vision transformer for generic body pose estimation. \emph{IEEE TPAMI}, 2024.
 \bibitem{sapiens2} R.~Khirodkar, H.~Wen, J.~Martinez, Y.~Dong, Z.~Su, and S.~Saito. Sapiens2. arXiv:2604.21681, 2026.
 \bibitem{sapiens2docs} Hugging Face. Sapiens2 model documentation. \url{https://huggingface.co/docs/transformers/model_doc/sapiens2}.
+\bibitem{hrnet} K.~Sun, B.~Xiao, D.~Liu, and J.~Wang. Deep high-resolution representation learning for human pose estimation. In \emph{CVPR}, 2019.
+\bibitem{darkpose} F.~Zhang, X.~Zhu, H.~Dai, M.~Ye, and C.~Zhu. Distribution-aware coordinate representation for human pose estimation. In \emph{CVPR}, 2020.
+\bibitem{rspose} M.~C.~Kele\c{s}, B.~Cetinkaya, S.~Kalkan, and E.~Akba\c{s}. RSPose: Ranking based losses for human pose estimation. arXiv:2511.13857, 2025.
 \bibitem{meanteacher} A.~Tarvainen and H.~Valpola. Mean teachers are better role models. In \emph{NeurIPS}, 2017.
 \end{thebibliography}
 

@@ -26,6 +26,8 @@ To reproduce:
 3. Check reloading the saved weights: `sbatch -J fidip-s2eval-s1 scripts/sapiens2_eval.sbatch full-s2ft-s1`.
 4. Score: `python scripts/bootstrap_ap.py --a <released.json> --b <predictions.json> --tag-a released --tag-b s2ft-s1`.
 
+Report privacy decisions (Nicholas Sheft, 2026-11-05): the report shows no SyRIP photographs, and `report/figures/fig_skeletons.pdf` and `report/report.pdf` stay out of GitHub because they contain label coordinates. Rebuild them with SyRIP access; `report.tex` shows a placeholder box if the figure is absent.
+
 Later sections are a dated history. "Final reported numbers (2026-10-23)" and the later updates below were each the best result at that date.
 
 ## Code

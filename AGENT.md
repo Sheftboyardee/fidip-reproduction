@@ -1367,3 +1367,6 @@ Report: `report/report.tex`, 9 pages.
 - While drafting, the round 2 BatchNorm explanation was rechecked: it failed at three seeds (round 3), and the report says so.
 
 Cleanup: README headline, `results/eval500*`, MANIFEST "Final system" section and Sapiens2 environment, SKILL.md stale note, `requirements-sapiens2.txt`, training logs in `results/logs/`.
+
+**User decisions (2026-11-05):** author name set to Nicholas Sheft. Skeleton images stay out of GitHub. No photographs in the report, stated in the report as a deliberate choice.
+- The reload jobs had not started, so the report states that the reload check was not complete. HRNet, DarkPose and RSPose citations were added.
